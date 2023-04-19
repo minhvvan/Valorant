@@ -71,11 +71,10 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter)
 		return;
 	}
 
-	// Attach the weapon to the First Person Character
+	//!TODO: 태그 확인 -> attch 결정
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-	
-	// switch bHasRifle so the animation blueprint can switch to another animation set
+
 	Character->SetHasRifle(true);
 
 	// Set up action bindings
