@@ -8,8 +8,8 @@
 #include "TP_InteractionComponent.generated.h"
 
 // The character picking this up is the parameter sent with the notification
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractEnd);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, AValorantCharacter*, InteractCharacter);
+DECLARE_MULTICAST_DELEGATE(FOnInteractEnd);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteract, AValorantCharacter* InteractCharacter);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VALORANT_API UTP_InteractionComponent : public USphereComponent
@@ -20,10 +20,7 @@ public:
 	// Sets default values for this component's properties
 	UTP_InteractionComponent();
 
-	UPROPERTY(BlueprintAssignable, Category = "Interaction")
 	FOnInteract OnInteract;	
-	
-	UPROPERTY(BlueprintAssignable, Category = "Interaction")
 	FOnInteractEnd OnInteractEnd;
 
 protected:

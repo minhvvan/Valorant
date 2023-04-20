@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ValorantCharacter.h"
 #include "Weapon.generated.h"
 
 UCLASS()
@@ -15,12 +16,41 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
+	UPROPERTY(EditAnywhere, BlueprintreadOnly)
+	class UTP_WeaponComponent* WeaponComp;
+
+	UPROPERTY(EditAnywhere, BlueprintreadOnly)
+	class UTP_PickUpComponent* PickUpComp;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class USkeletalMeshComponent* Mesh;
+
+	UPROPERTY(EditAnywhere, BlueprintreadOnly)
+	class UTP_InteractionComponent* InteractComp;
+
+	UPROPERTY(EditAnywhere, BlueprintreadOnly)
+	class UWidgetComponent* InteractUI;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanInteraction;
+
+	UPROPERTY(EditAnywhere, BlueprintreadOnly)
+	FName WeaponTag;
+
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void PostInitializeComponents() override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void PickUp(AValorantCharacter* Character);
+	void Interact(AValorantCharacter* Character);
+	void EndInteract();
 
 };
