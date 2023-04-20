@@ -84,8 +84,20 @@ void AValorantCharacter::DetachWeapon()
 		auto Weapon = Cast<AWeapon>(Attached);
 		if (Weapon->ActorHasTag("Primary"))
 		{
-			Weapon->WeaponComp->DetachWeapon();
-			Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			Weapon->DetachWeapon();
+
+			FHitResult HisResult;
+			FVector Start = GetActorLocation();
+			FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
+			FVector DropPos;
+			if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
+			{
+				DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f);
+			}
+			Weapon->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
+			Weapon->SetActorLocation(DropPos);
+			Weapon->EnableInteraction();
+
 			UE_LOG(LogTemp, Warning, TEXT("Disable"));
 		}
 	}

@@ -15,6 +15,7 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 {
 	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
+	Once = true;
 }
 
 
@@ -77,21 +78,24 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter)
 
 	Character->SetHasRifle(true);
 
-	//!TODO: 두번은 호출안됨 -> 근데 계속 발사됨 -> 이걸 어캐 끄지;;;;;
-	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
+	if (Once)
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 		{
-			// Set the priority of the mapping to 1, so that it overrides the Jump action with the Fire action when using touch input
-			Subsystem->AddMappingContext(FireMappingContext, 1);
-		}
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+			{
+				// Set the priority of the mapping to 1, so that it overrides the Jump action with the Fire action when using touch input
+				Subsystem->AddMappingContext(FireMappingContext, 1);
+			}
 
-		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
-		{
-			// Fire
-			UE_LOG(LogTemp, Warning, TEXT("%u: Enable"), GetUniqueID());
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
+			if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
+			{
+				// Fire
+				UE_LOG(LogTemp, Warning, TEXT("%u: Enable"), GetUniqueID());
+				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
+			}
 		}
+		Once = false;
 	}
 }
 

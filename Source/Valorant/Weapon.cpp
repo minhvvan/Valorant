@@ -103,3 +103,16 @@ void AWeapon::EndInteract()
 	InteractUI->SetVisibility(false);
 }
 
+void AWeapon::DetachWeapon()
+{
+	if (WeaponComp)
+	{
+		WeaponComp->DetachWeapon();
+	}
+}
+
+void AWeapon::EnableInteraction()
+{
+	InteractComp->SetGenerateOverlapEvents(true);
+}
+

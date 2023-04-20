@@ -53,5 +53,7 @@ public:
 	void PickUp(AValorantCharacter* Character);
 	void Interact(AValorantCharacter* Character);
 	void EndInteract();
+	void DetachWeapon();
+	void EnableInteraction();
 
 };

@@ -61,4 +61,5 @@ private:
 	/** The Character holding this weapon*/
 	AValorantCharacter* Character;
 
+	bool Once;
 };
