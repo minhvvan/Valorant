@@ -7,6 +7,9 @@
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Weapon.h"
+#include "TP_WeaponComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,7 +54,6 @@ void AValorantCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -70,6 +72,22 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AValorantCharacter::Look);
+	}
+}
+
+void AValorantCharacter::DetachWeapon()
+{
+	TArray<AActor*> AttachedActors;
+	GetAttachedActors(AttachedActors);
+	for (auto* Attached : AttachedActors)
+	{
+		auto Weapon = Cast<AWeapon>(Attached);
+		if (Weapon->ActorHasTag("Primary"))
+		{
+			Weapon->WeaponComp->DetachWeapon();
+			Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			UE_LOG(LogTemp, Warning, TEXT("Disable"));
+		}
 	}
 }
 

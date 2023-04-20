@@ -37,7 +37,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintreadOnly)
 	FName WeaponTag;
 
-
+	UPROPERTY(EditAnywhere, BlueprintreadOnly)
+	AValorantCharacter* OverlappedCharacter;
 
 protected:
 	// Called when the game starts or when spawned

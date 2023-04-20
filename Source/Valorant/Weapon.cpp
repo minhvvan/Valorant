@@ -7,7 +7,7 @@
 #include "TP_WeaponComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/WidgetComponent.h"
-
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -53,13 +53,25 @@ void AWeapon::PostInitializeComponents()
 void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bCanInteraction)
+	{
+		auto Controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		if (Controller->WasInputKeyJustPressed(EKeys::E))
+		{
+			//detach weapon
+			OverlappedCharacter->DetachWeapon();
+
+			//re attach
+			WeaponComp->AttachWeapon(OverlappedCharacter);
+			UE_LOG(LogTemp, Warning, TEXT("Swap"));
+		}
+	}
 }
 
 void AWeapon::PickUp(AValorantCharacter* Character)
 {
-	UE_LOG(LogTemp, Warning, TEXT("PickUp"));
-
-	if (WeaponComp->ComponentHasTag(WeaponTag))
+	if (ActorHasTag(WeaponTag))
 	{
 		//!TODO: 1차적으로 Rifle로 --> Pistol도 가능하게 확장해야함
 		if (Character->GetHasRifle())
@@ -76,10 +88,9 @@ void AWeapon::PickUp(AValorantCharacter* Character)
 
 void AWeapon::Interact(AValorantCharacter* Character)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Interact"));
-
 	if (Character->GetHasRifle())
 	{
+		OverlappedCharacter = Character;
 		bCanInteraction = true;
 		InteractUI->SetVisibility(true);
 	}
@@ -87,6 +98,7 @@ void AWeapon::Interact(AValorantCharacter* Character)
 
 void AWeapon::EndInteract()
 {
+	OverlappedCharacter = nullptr;
 	bCanInteraction = false;
 	InteractUI->SetVisibility(false);
 }

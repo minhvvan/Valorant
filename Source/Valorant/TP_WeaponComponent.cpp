@@ -63,6 +63,7 @@ void UTP_WeaponComponent::Fire()
 	}
 }
 
+
 void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
@@ -71,13 +72,12 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter)
 		return;
 	}
 
-	//!TODO: 태그 확인 -> attch 결정
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 
 	Character->SetHasRifle(true);
 
-	// Set up action bindings
+	//!TODO: 두번은 호출안됨 -> 근데 계속 발사됨 -> 이걸 어캐 끄지;;;;;
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -89,10 +89,17 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter)
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
 			// Fire
+			UE_LOG(LogTemp, Warning, TEXT("%u: Enable"), GetUniqueID());
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
 		}
 	}
 }
+
+void UTP_WeaponComponent::DetachWeapon()
+{
+	Character = nullptr;
+}
+
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

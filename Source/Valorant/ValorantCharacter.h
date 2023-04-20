@@ -39,9 +39,8 @@ class AValorantCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = Weapon, meta = (AllowPrivateAccess = "true"))
-	AActor* PrimaryWeapon;
-
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AWeapon> AmmoBlueprint;
 public:
 	AValorantCharacter();
 
@@ -49,12 +48,9 @@ protected:
 	virtual void BeginPlay();
 
 public:
-		
-	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
-	/** Bool for AnimBP to switch to another animation set */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
 	bool bHasRifle;
 
@@ -76,6 +72,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	bool GetHasPistol();
 
+	void DetachWeapon();
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
