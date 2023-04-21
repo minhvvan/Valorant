@@ -43,14 +43,14 @@ public:
 
 	/** Attaches the actor to a FirstPersonCharacter */
 	UFUNCTION(BlueprintCallable, Category="Weapon")
-	void AttachWeapon(AValorantCharacter* TargetCharacter);	
+	void AttachWeapon(AValorantCharacter* TargetCharacter, int type);
 	
 	/** Make the weapon Fire a Projectile */
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void Fire();
 
 	UFUNCTION()
-	void DetachWeapon();
+	void DetachWeapon(int type);
 
 protected:
 	/** Ends gameplay for this component. */
@@ -62,4 +62,7 @@ private:
 	AValorantCharacter* Character;
 
 	bool Once;
+
+	const int PRIMARY = 0;
+	const int SECONDARY = 0;
 };

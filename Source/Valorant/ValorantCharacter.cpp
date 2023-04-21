@@ -38,7 +38,6 @@ AValorantCharacter::AValorantCharacter()
 	Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
-
 }
 
 void AValorantCharacter::BeginPlay()
@@ -92,17 +91,26 @@ void AValorantCharacter::DetachWeapon()
 			FVector DropPos;
 			if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
 			{
-				DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f);
+				DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f) + GetActorForwardVector() * 50;
 			}
 			Weapon->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 			Weapon->SetActorLocation(DropPos);
 			Weapon->EnableInteraction();
 
-			UE_LOG(LogTemp, Warning, TEXT("Disable"));
+			UE_LOG(LogTemp, Warning, TEXT("Detach: %s"), *DropPos.ToString());
 		}
 	}
 }
 
+void AValorantCharacter::AddToWeapon(FString Tag, AWeapon* Weapon)
+{
+	Weapons.Add(Tag, Weapon);
+}
+
+void AValorantCharacter::RemoveFromWeapon(FString Tag)
+{
+	Weapons.FindAndRemoveChecked(Tag);
+}
 
 void AValorantCharacter::Move(const FInputActionValue& Value)
 {

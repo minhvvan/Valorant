@@ -39,8 +39,12 @@ class AValorantCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AWeapon> AmmoBlueprint;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
+	TMap<FString, class AWeapon*> Weapons;	
+	
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
+	//class AWeapon* CurrentWeapon;
+
 public:
 	AValorantCharacter();
 
@@ -68,11 +72,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void SetHasPistol(bool bNewHasRifle);
 
-	/** Getter for the bool */
 	UFUNCTION(BlueprintCallable, Category = Weapon)
-	bool GetHasPistol();
-
+	bool GetHasPistol();	
+	
 	void DetachWeapon();
+
+	UFUNCTION()
+	void AddToWeapon(FString Tag, class AWeapon* Weapon);
+
+	UFUNCTION()
+	void RemoveFromWeapon(FString Tag);
+
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -91,6 +101,6 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-
+	
 };
 

@@ -60,11 +60,14 @@ void AWeapon::Tick(float DeltaTime)
 		if (Controller->WasInputKeyJustPressed(EKeys::E))
 		{
 			//detach weapon
-			OverlappedCharacter->DetachWeapon();
-
-			//re attach
-			WeaponComp->AttachWeapon(OverlappedCharacter);
-			UE_LOG(LogTemp, Warning, TEXT("Swap"));
+			if (OverlappedCharacter)
+			{
+				OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
+				OverlappedCharacter->DetachWeapon();
+				OverlappedCharacter->AddToWeapon(WeaponTag.ToString(), this);
+				WeaponComp->AttachWeapon(OverlappedCharacter, type);
+				UE_LOG(LogTemp, Warning, TEXT("Swap"));
+			}
 		}
 	}
 }
@@ -73,15 +76,31 @@ void AWeapon::PickUp(AValorantCharacter* Character)
 {
 	if (ActorHasTag(WeaponTag))
 	{
-		//!TODO: 1차적으로 Rifle로 --> Pistol도 가능하게 확장해야함
-		if (Character->GetHasRifle())
+		if (WeaponTag == "Primary")
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Already Exist"));
+			if (Character->GetHasRifle())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Already Exist: Primary"));
+			}
+			else
+			{
+				Character->AddToWeapon(WeaponTag.ToString(), this);
+;				WeaponComp->AttachWeapon(Character, PRIMARY);
+				InteractComp->SetGenerateOverlapEvents(false);
+			}
 		}
-		else 
+		else if (WeaponTag == "Secondary")
 		{
-			WeaponComp->AttachWeapon(Character);
-			InteractComp->SetGenerateOverlapEvents(false);
+			if (Character->GetHasPistol())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Already Exist: Secondary"));
+			}
+			else
+			{
+				Character->AddToWeapon(WeaponTag.ToString(), this);
+				WeaponComp->AttachWeapon(Character, SECONDARY);
+				InteractComp->SetGenerateOverlapEvents(false);
+			}
 		}
 	}
 }
@@ -98,6 +117,8 @@ void AWeapon::Interact(AValorantCharacter* Character)
 
 void AWeapon::EndInteract()
 {
+	UE_LOG(LogTemp, Warning, TEXT("End Overlap"));
+
 	OverlappedCharacter = nullptr;
 	bCanInteraction = false;
 	InteractUI->SetVisibility(false);
@@ -107,7 +128,7 @@ void AWeapon::DetachWeapon()
 {
 	if (WeaponComp)
 	{
-		WeaponComp->DetachWeapon();
+		WeaponComp->DetachWeapon(type);
 	}
 }
 

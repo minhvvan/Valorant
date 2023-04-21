@@ -56,4 +56,10 @@ public:
 	void DetachWeapon();
 	void EnableInteraction();
 
+	UPROPERTY(EditAnywhere)
+	int type;
+
+	const int PRIMARY = 0;
+	const int SECONDARY = 1;
+
 };

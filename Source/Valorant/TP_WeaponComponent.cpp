@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
+
 // Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent()
 {
@@ -65,7 +66,7 @@ void UTP_WeaponComponent::Fire()
 }
 
 
-void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter)
+void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, int type)
 {
 	Character = TargetCharacter;
 	if (Character == nullptr)
@@ -76,7 +77,14 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter)
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 
-	Character->SetHasRifle(true);
+	if (type == PRIMARY)
+	{
+		Character->SetHasRifle(true);
+	}
+	else
+	{
+		Character->SetHasPistol(true);
+	}
 
 	if (Once)
 	{
@@ -99,7 +107,7 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter)
 	}
 }
 
-void UTP_WeaponComponent::DetachWeapon()
+void UTP_WeaponComponent::DetachWeapon(int type)
 {
 	Character = nullptr;
 }
