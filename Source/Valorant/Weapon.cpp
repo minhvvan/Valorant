@@ -63,7 +63,7 @@ void AWeapon::Tick(float DeltaTime)
 			if (OverlappedCharacter)
 			{
 				OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
-				OverlappedCharacter->DetachWeapon();
+				OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
 				OverlappedCharacter->AddToWeapon(WeaponTag.ToString(), this);
 				WeaponComp->AttachWeapon(OverlappedCharacter, type);
 				UE_LOG(LogTemp, Warning, TEXT("Swap"));
@@ -85,7 +85,7 @@ void AWeapon::PickUp(AValorantCharacter* Character)
 			else
 			{
 				Character->AddToWeapon(WeaponTag.ToString(), this);
-;				WeaponComp->AttachWeapon(Character, PRIMARY);
+				WeaponComp->AttachWeapon(Character, PRIMARY);
 				InteractComp->SetGenerateOverlapEvents(false);
 			}
 		}

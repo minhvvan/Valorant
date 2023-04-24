@@ -61,8 +61,8 @@ private:
 	/** The Character holding this weapon*/
 	AValorantCharacter* Character;
 
-	bool Once;
-
+	bool Once = true;
+	bool CanFire = false;
 	const int PRIMARY = 0;
 	const int SECONDARY = 0;
 };

@@ -42,8 +42,8 @@ class AValorantCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
 	TMap<FString, class AWeapon*> Weapons;	
 	
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
-	//class AWeapon* CurrentWeapon;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
+	class AWeapon* CurrentWeapon;
 
 public:
 	AValorantCharacter();
@@ -75,13 +75,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	bool GetHasPistol();	
 	
-	void DetachWeapon();
+	void DetachWeapon(FString Tag);
 
 	UFUNCTION()
 	void AddToWeapon(FString Tag, class AWeapon* Weapon);
 
 	UFUNCTION()
 	void RemoveFromWeapon(FString Tag);
+
+	UFUNCTION()
+	class AWeapon* GetCurrentWeapon() { return CurrentWeapon; };
+
+	UFUNCTION()
+	void SetCurrentWeapon(class AWeapon* Weapon) { CurrentWeapon = Weapon; };
 
 protected:
 	/** Called for movement input */

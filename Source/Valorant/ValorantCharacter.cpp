@@ -38,6 +38,8 @@ AValorantCharacter::AValorantCharacter()
 	Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+
+	CurrentWeapon = nullptr;
 }
 
 void AValorantCharacter::BeginPlay()
@@ -74,14 +76,14 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	}
 }
 
-void AValorantCharacter::DetachWeapon()
+void AValorantCharacter::DetachWeapon(FString Tag)
 {
 	TArray<AActor*> AttachedActors;
 	GetAttachedActors(AttachedActors);
 	for (auto* Attached : AttachedActors)
 	{
 		auto Weapon = Cast<AWeapon>(Attached);
-		if (Weapon->ActorHasTag("Primary"))
+		if (Weapon->ActorHasTag(FName(*Tag)))
 		{
 			Weapon->DetachWeapon();
 
@@ -96,7 +98,9 @@ void AValorantCharacter::DetachWeapon()
 			Weapon->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 			Weapon->SetActorLocation(DropPos);
 			Weapon->EnableInteraction();
+			Weapon->SetActorHiddenInGame(false);
 
+			//~TODO: 이러면 현재무기 바뀜(보조무기 -> 주무기 이렇게) & Fire가 이상함
 			UE_LOG(LogTemp, Warning, TEXT("Detach: %s"), *DropPos.ToString());
 		}
 	}

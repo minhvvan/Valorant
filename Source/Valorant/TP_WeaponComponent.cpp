@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Weapon.h"
 
 
 // Sets default values for this component's properties
@@ -16,13 +17,12 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 {
 	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
-	Once = true;
 }
 
 
 void UTP_WeaponComponent::Fire()
 {
-	if (Character == nullptr || Character->GetController() == nullptr)
+	if (Character == nullptr || Character->GetController() == nullptr || !CanFire)
 	{
 		return;
 	}
@@ -77,13 +77,29 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, int 
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 
+	//!이미 장착한 무기가 없음
+	AWeapon* Weapon = Cast<AWeapon>(GetOwner());
+	if (Character->GetCurrentWeapon() == nullptr)
+	{
+		CanFire = true;
+		if (Weapon)
+		{
+			Character->SetCurrentWeapon(Weapon);
+		}
+	}
+	else 
+	{
+		CanFire = false;
+		Weapon->SetActorHiddenInGame(true);
+	}
+
 	if (type == PRIMARY)
 	{
 		Character->SetHasRifle(true);
 	}
 	else
 	{
-		Character->SetHasPistol(true);
+		Character->SetHasPistol(true); 
 	}
 
 	if (Once)
@@ -99,8 +115,8 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, int 
 			if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 			{
 				// Fire
-				UE_LOG(LogTemp, Warning, TEXT("%u: Enable"), GetUniqueID());
 				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
+				UE_LOG(LogTemp, Warning, TEXT("%u: Enable"), GetUniqueID());
 			}
 		}
 		Once = false;
@@ -109,6 +125,8 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, int 
 
 void UTP_WeaponComponent::DetachWeapon(int type)
 {
+	UE_LOG(LogTemp, Warning, TEXT("%u: Disable"), GetUniqueID());
+	CanFire = false;
 	Character = nullptr;
 }
 
