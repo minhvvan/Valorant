@@ -65,7 +65,7 @@ void AWeapon::Tick(float DeltaTime)
 				OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
 				OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
 				OverlappedCharacter->AddToWeapon(WeaponTag.ToString(), this);
-				WeaponComp->AttachWeapon(OverlappedCharacter, type);
+				WeaponComp->AttachWeapon(OverlappedCharacter, WeaponTag.ToString());
 				UE_LOG(LogTemp, Warning, TEXT("Swap"));
 			}
 		}
@@ -85,7 +85,7 @@ void AWeapon::PickUp(AValorantCharacter* Character)
 			else
 			{
 				Character->AddToWeapon(WeaponTag.ToString(), this);
-				WeaponComp->AttachWeapon(Character, PRIMARY);
+				WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
 				InteractComp->SetGenerateOverlapEvents(false);
 			}
 		}
@@ -98,7 +98,7 @@ void AWeapon::PickUp(AValorantCharacter* Character)
 			else
 			{
 				Character->AddToWeapon(WeaponTag.ToString(), this);
-				WeaponComp->AttachWeapon(Character, SECONDARY);
+				WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
 				InteractComp->SetGenerateOverlapEvents(false);
 			}
 		}
@@ -128,12 +128,20 @@ void AWeapon::DetachWeapon()
 {
 	if (WeaponComp)
 	{
-		WeaponComp->DetachWeapon(type);
+		WeaponComp->DetachWeapon();
 	}
 }
 
 void AWeapon::EnableInteraction()
 {
 	InteractComp->SetGenerateOverlapEvents(true);
+}
+
+void AWeapon::SetCanFire(bool Flag)
+{
+	if (WeaponComp)
+	{
+		WeaponComp->SetCanFire(Flag);
+	}
 }
 

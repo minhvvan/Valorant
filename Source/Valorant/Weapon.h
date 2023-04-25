@@ -55,6 +55,7 @@ public:
 	void EndInteract();
 	void DetachWeapon();
 	void EnableInteraction();
+	void SetCanFire(bool Flag);
 
 	UPROPERTY(EditAnywhere)
 	int type;

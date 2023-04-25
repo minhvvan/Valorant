@@ -66,7 +66,7 @@ void UTP_WeaponComponent::Fire()
 }
 
 
-void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, int type)
+void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FString Tag)
 {
 	Character = TargetCharacter;
 	if (Character == nullptr)
@@ -89,11 +89,20 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, int 
 	}
 	else 
 	{
-		CanFire = false;
-		Weapon->SetActorHiddenInGame(true);
+		//현재 무기가 바뀐것
+		if (Character->GetCurrentWeapon()->ActorHasTag(FName(*Tag)))
+		{
+			CanFire = true;
+		}
+		else
+		{
+			//현재 무기랑 다른 무기
+			CanFire = false;
+			Weapon->SetActorHiddenInGame(true);
+		}
 	}
 
-	if (type == PRIMARY)
+	if (Tag == "Primary")
 	{
 		Character->SetHasRifle(true);
 	}
@@ -116,16 +125,14 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, int 
 			{
 				// Fire
 				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
-				UE_LOG(LogTemp, Warning, TEXT("%u: Enable"), GetUniqueID());
 			}
 		}
 		Once = false;
 	}
 }
 
-void UTP_WeaponComponent::DetachWeapon(int type)
+void UTP_WeaponComponent::DetachWeapon()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%u: Disable"), GetUniqueID());
 	CanFire = false;
 	Character = nullptr;
 }

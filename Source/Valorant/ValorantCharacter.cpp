@@ -73,6 +73,12 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AValorantCharacter::Look);
+		
+		//Swap
+		EnhancedInputComponent->BindAction(SlotOneAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotOne);
+		EnhancedInputComponent->BindAction(SlotTwoAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotTwo);
+		EnhancedInputComponent->BindAction(SlotThreeAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotThree);
+		EnhancedInputComponent->BindAction(SlotFourAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotFour);
 	}
 }
 
@@ -85,23 +91,38 @@ void AValorantCharacter::DetachWeapon(FString Tag)
 		auto Weapon = Cast<AWeapon>(Attached);
 		if (Weapon->ActorHasTag(FName(*Tag)))
 		{
+			if (Tag == "Primary")
+			{
+				SetHasRifle(false);
+			}
+			else 
+			{
+				SetHasPistol(false);
+			}
+
+			if (CurrentWeapon->ActorHasTag(FName(*Tag)))
+			{
+				CurrentWeapon = nullptr;
+			}
+
 			Weapon->DetachWeapon();
 
-			FHitResult HisResult;
-			FVector Start = GetActorLocation();
-			FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
-			FVector DropPos;
-			if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
+			//Drop
 			{
-				DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f) + GetActorForwardVector() * 50;
+				FHitResult HisResult;
+				FVector Start = GetActorLocation();
+				FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
+				FVector DropPos;
+				if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
+				{
+					DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f) + GetActorForwardVector() * 50;
+				}
+				Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+				Weapon->SetActorLocation(DropPos);
+				Weapon->SetActorRotation(FQuat::Identity);
+				Weapon->EnableInteraction();
+				Weapon->SetActorHiddenInGame(false);
 			}
-			Weapon->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
-			Weapon->SetActorLocation(DropPos);
-			Weapon->EnableInteraction();
-			Weapon->SetActorHiddenInGame(false);
-
-			//~TODO: 이러면 현재무기 바뀜(보조무기 -> 주무기 이렇게) & Fire가 이상함
-			UE_LOG(LogTemp, Warning, TEXT("Detach: %s"), *DropPos.ToString());
 		}
 	}
 }
@@ -140,6 +161,64 @@ void AValorantCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AValorantCharacter::QuickSlotOne(const FInputActionValue& Value)
+{
+	AWeapon** Container = Weapons.Find("Primary");
+	if (Container)
+	{
+		AWeapon* Weapon = *Container;
+		if (CurrentWeapon)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Current: %s"), *(CurrentWeapon->GetName()));
+			CurrentWeapon->SetCanFire(false);
+			CurrentWeapon->SetActorHiddenInGame(true);
+
+			Weapon->SetCanFire(true);
+			Weapon->SetActorHiddenInGame(false);
+		}
+		SetCurrentWeapon(Weapon);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Pimary None"));
+	}
+}
+
+void AValorantCharacter::QuickSlotTwo(const FInputActionValue& Value)
+{
+	AWeapon** Container = Weapons.Find("Secondary");
+	if (Container)
+	{
+		AWeapon* Weapon = *Container;
+		if (CurrentWeapon)
+		{
+			//현재 무기 fire 끄기
+			//히든 키기
+			CurrentWeapon->SetCanFire(false);
+			CurrentWeapon->SetActorHiddenInGame(true);
+
+			//1번 무기 Fire가능
+			//1번 무기 보이기
+			Weapon->SetCanFire(true);
+			Weapon->SetActorHiddenInGame(false);
+			UE_LOG(LogTemp, Warning, TEXT("Secondary Change"));
+		}
+		SetCurrentWeapon(Weapon);
+	}
+	else 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Secondary None"));
+	}
+}
+
+void AValorantCharacter::QuickSlotThree(const FInputActionValue& Value)
+{
+}
+
+void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
+{
 }
 
 void AValorantCharacter::SetHasRifle(bool bNewHasRifle)
