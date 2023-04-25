@@ -52,6 +52,9 @@ class AValorantCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* SlotFourAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* DropAction;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
 	TMap<FString, class AWeapon*> Weapons;	
 	
@@ -100,7 +103,7 @@ public:
 	class AWeapon* GetCurrentWeapon() { return CurrentWeapon; };
 
 	UFUNCTION()
-	void SetCurrentWeapon(class AWeapon* Weapon) { CurrentWeapon = Weapon; };
+	void SetCurrentWeapon(class AWeapon* Weapon);
 
 protected:
 	/** Called for movement input */
@@ -114,6 +117,7 @@ protected:
 	void QuickSlotTwo(const FInputActionValue& Value);
 	void QuickSlotThree(const FInputActionValue& Value);
 	void QuickSlotFour(const FInputActionValue& Value);
+	void DropCurrentWeapon(const FInputActionValue& Value);
 
 protected:
 	// APawn interface

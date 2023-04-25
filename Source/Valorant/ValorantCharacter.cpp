@@ -79,6 +79,9 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 		EnhancedInputComponent->BindAction(SlotTwoAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotTwo);
 		EnhancedInputComponent->BindAction(SlotThreeAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotThree);
 		EnhancedInputComponent->BindAction(SlotFourAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotFour);
+		
+		//Drop
+		EnhancedInputComponent->BindAction(DropAction, ETriggerEvent::Triggered, this, &AValorantCharacter::DropCurrentWeapon);
 	}
 }
 
@@ -135,6 +138,12 @@ void AValorantCharacter::AddToWeapon(FString Tag, AWeapon* Weapon)
 void AValorantCharacter::RemoveFromWeapon(FString Tag)
 {
 	Weapons.FindAndRemoveChecked(Tag);
+}
+
+void AValorantCharacter::SetCurrentWeapon(AWeapon* Weapon)
+{
+	CurrentWeapon = Weapon;
+	Weapon->SetActorHiddenInGame(false);
 }
 
 void AValorantCharacter::Move(const FInputActionValue& Value)
@@ -203,7 +212,6 @@ void AValorantCharacter::QuickSlotTwo(const FInputActionValue& Value)
 			//1번 무기 보이기
 			Weapon->SetCanFire(true);
 			Weapon->SetActorHiddenInGame(false);
-			UE_LOG(LogTemp, Warning, TEXT("Secondary Change"));
 		}
 		SetCurrentWeapon(Weapon);
 	}
@@ -219,6 +227,42 @@ void AValorantCharacter::QuickSlotThree(const FInputActionValue& Value)
 
 void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
 {
+}
+
+void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
+{
+	if (CurrentWeapon)
+	{
+		auto Tag = CurrentWeapon->WeaponTag.ToString();
+		RemoveFromWeapon(CurrentWeapon->WeaponTag.ToString());
+		DetachWeapon(CurrentWeapon->WeaponTag.ToString());
+		if (Tag == "Primary")
+		{
+			//주무기 -> 보조무기
+			//보조무기 있는지 check
+			if (auto ptr =  Weapons.Find("Secondary"))
+			{
+				SetCurrentWeapon(*ptr);
+			}
+			else 
+			{
+				CurrentWeapon = nullptr;
+			}
+		}
+		else
+		{
+			//보조무기 -> 주무기
+			//주무기있나 체크
+			if (auto ptr = Weapons.Find("Primary"))
+			{
+				SetCurrentWeapon(*ptr);
+			}
+			else
+			{
+				CurrentWeapon = nullptr;
+			}
+		}
+	}
 }
 
 void AValorantCharacter::SetHasRifle(bool bNewHasRifle)

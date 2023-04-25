@@ -145,3 +145,13 @@ void AWeapon::SetCanFire(bool Flag)
 	}
 }
 
+void AWeapon::Drop()
+{
+	//detach weapon
+	if (OverlappedCharacter)
+	{
+		OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
+		OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
+	}
+}
+
