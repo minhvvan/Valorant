@@ -10,7 +10,12 @@
 #include "Weapon.h"
 #include "TP_WeaponComponent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Spike.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/WidgetComponent.h"
+#include "CollisionQueryParams.h"
+#include "BaseGameState.h"
+#include "GameFramework/PlayerController.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -79,6 +84,8 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 		EnhancedInputComponent->BindAction(SlotTwoAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotTwo);
 		EnhancedInputComponent->BindAction(SlotThreeAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotThree);
 		EnhancedInputComponent->BindAction(SlotFourAction, ETriggerEvent::Triggered, this, &AValorantCharacter::QuickSlotFour);
+		EnhancedInputComponent->BindAction(SlotFourAction, ETriggerEvent::Completed, this, &AValorantCharacter::Install);
+		EnhancedInputComponent->BindAction(SlotFourAction, ETriggerEvent::Canceled, this, &AValorantCharacter::CancleInstall);
 		
 		//Drop
 		EnhancedInputComponent->BindAction(DropAction, ETriggerEvent::Triggered, this, &AValorantCharacter::DropCurrentWeapon);
@@ -180,12 +187,16 @@ void AValorantCharacter::QuickSlotOne(const FInputActionValue& Value)
 		AWeapon* Weapon = *Container;
 		if (CurrentWeapon)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Current: %s"), *(CurrentWeapon->GetName()));
 			CurrentWeapon->SetCanFire(false);
 			CurrentWeapon->SetActorHiddenInGame(true);
 
 			Weapon->SetCanFire(true);
 			Weapon->SetActorHiddenInGame(false);
+		}
+		if (Spike)
+		{
+			//CurrentWeapon->SetCanFire(false);
+			Spike->SetActorHiddenInGame(true);
 		}
 		SetCurrentWeapon(Weapon);
 	}
@@ -213,6 +224,11 @@ void AValorantCharacter::QuickSlotTwo(const FInputActionValue& Value)
 			Weapon->SetCanFire(true);
 			Weapon->SetActorHiddenInGame(false);
 		}
+		if (Spike)
+		{
+			//CurrentWeapon->SetCanFire(false);
+			Spike->SetActorHiddenInGame(true);
+		}
 		SetCurrentWeapon(Weapon);
 	}
 	else 
@@ -227,6 +243,23 @@ void AValorantCharacter::QuickSlotThree(const FInputActionValue& Value)
 
 void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
 {
+	if (Spike)
+	{
+		if (Spike->GetCanInstall())
+		{
+			//~TODO: 설치 progress 표시
+			UE_LOG(LogTemp, Warning, TEXT("Install Start"));
+			OnInstall.Broadcast();
+		}
+		UE_LOG(LogTemp, Warning, TEXT("Swap"));
+
+		Spike->SetActorHiddenInGame(false);
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->SetCanFire(false);
+			CurrentWeapon->SetActorHiddenInGame(true);
+		}
+	}
 }
 
 void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
@@ -263,6 +296,53 @@ void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
 			}
 		}
 	}
+}
+
+void AValorantCharacter::Install(const FInputActionValue& Value)
+{
+	if (Spike)
+	{
+		if (Spike->GetCanInstall())
+		{
+			//설치 완료 -> 타이머 시작
+			UE_LOG(LogTemp, Warning, TEXT("Install Complete"));
+			FDetachWidget.Broadcast();
+			OnInstallComplete.Broadcast();
+
+			//Drop
+			{
+				FHitResult HisResult;
+				FVector Start = GetActorLocation();
+				FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
+				FVector DropPos;
+
+				FCollisionQueryParams CollisionParameters;
+				CollisionParameters.AddIgnoredActor(this);
+
+				if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility, CollisionParameters))
+				{
+					DropPos = HisResult.Location + GetActorForwardVector() * 20;
+				}
+				Spike->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+				Spike->SetActorLocation(DropPos);
+				Spike->SetActorRotation(FQuat::Identity);
+				//Spike->EnableInteraction();
+				Spike->SetActorHiddenInGame(false);
+			}
+			Spike->CanPickUp = false;
+			Spike = nullptr;
+		}
+	}
+}
+
+void AValorantCharacter::CancleInstall(const FInputActionValue& Value)
+{
+	FDetachWidget.Broadcast();
+}
+
+void AValorantCharacter::LiftFail()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Lift"));
 }
 
 void AValorantCharacter::SetHasRifle(bool bNewHasRifle)

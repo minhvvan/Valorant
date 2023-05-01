@@ -7,6 +7,8 @@
 #include "InputActionValue.h"
 #include "ValorantCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInstall);
+
 class UInputComponent;
 class USkeletalMeshComponent;
 class USceneComponent;
@@ -61,8 +63,20 @@ class AValorantCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
 	class AWeapon* CurrentWeapon;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
+	class ASpike* Spike;
+
 public:
 	AValorantCharacter();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnInstall OnInstall;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnInstall OnInstallComplete;	
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnInstall FDetachWidget;
 
 protected:
 	virtual void BeginPlay();
@@ -105,6 +119,12 @@ public:
 	UFUNCTION()
 	void SetCurrentWeapon(class AWeapon* Weapon);
 
+	UFUNCTION(BlueprintCallable, Category = Weapon)
+	class ASpike* GetSpike() { return Spike; };
+
+	UFUNCTION()
+	void SetSpike(class ASpike* S) { Spike = S; };
+
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -118,6 +138,11 @@ protected:
 	void QuickSlotThree(const FInputActionValue& Value);
 	void QuickSlotFour(const FInputActionValue& Value);
 	void DropCurrentWeapon(const FInputActionValue& Value);
+
+	void Install(const FInputActionValue& Value);
+	void CancleInstall(const FInputActionValue& Value);
+
+	void LiftFail();
 
 protected:
 	// APawn interface

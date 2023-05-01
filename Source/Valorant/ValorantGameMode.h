@@ -13,6 +13,8 @@ class AValorantGameMode : public AGameModeBase
 
 public:
 	AValorantGameMode();
+
+	class ATriggerVolume* Site;
 };
 
 
