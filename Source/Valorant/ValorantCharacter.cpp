@@ -273,9 +273,12 @@ void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
 		{
 			//주무기 -> 보조무기
 			//보조무기 있는지 check
-			if (auto ptr =  Weapons.Find("Secondary"))
+			if (AWeapon** ptr =  Weapons.Find("Secondary"))
 			{
-				SetCurrentWeapon(*ptr);
+				auto temp = *(ptr);
+				SetCurrentWeapon(temp);
+				temp->SetActorHiddenInGame(false);
+				temp->SetCanFire(true);
 			}
 			else 
 			{
@@ -288,7 +291,10 @@ void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
 			//주무기있나 체크
 			if (auto ptr = Weapons.Find("Primary"))
 			{
-				SetCurrentWeapon(*ptr);
+				auto temp = *(ptr);
+				SetCurrentWeapon(temp);
+				temp->SetActorHiddenInGame(false);
+				temp->SetCanFire(true);
 			}
 			else
 			{
