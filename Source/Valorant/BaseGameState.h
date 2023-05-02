@@ -17,4 +17,8 @@ class VALORANT_API ABaseGameState : public AGameStateBase
 
 public:
 	FTimerHandle TimerHandle;
+
+	void StartTimer();
+	void Expire();
+	void Clear();
 };

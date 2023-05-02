@@ -18,6 +18,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Knife.h"
+#include "BaseGameState.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -341,10 +342,11 @@ void AValorantCharacter::Install(const FInputActionValue& Value)
 		if (Spike->GetCanInstall())
 		{
 			//설치 완료 -> 타이머 시작
-			UE_LOG(LogTemp, Warning, TEXT("Install Complete"));
 			FDetachWidget.Broadcast();
 			OnInstallComplete.Broadcast();
 
+			auto GS = GetWorld()->GetGameState<ABaseGameState>();
+			GS->StartTimer();
 			//Drop
 			{
 				FHitResult HisResult;

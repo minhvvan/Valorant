@@ -3,3 +3,18 @@
 
 #include "BaseGameState.h"
 #include "Engine/EngineTypes.h"
+
+void ABaseGameState::StartTimer()
+{
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABaseGameState::Expire, 30.0f, false);
+}
+
+void ABaseGameState::Expire()
+{
+	UE_LOG(LogTemp, Warning, TEXT("BOOOOOOOOOOOOOMMMM"));
+}
+
+void ABaseGameState::Clear()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Clear Spike"));
+}
