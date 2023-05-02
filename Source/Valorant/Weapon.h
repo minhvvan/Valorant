@@ -17,46 +17,13 @@ public:
 	AWeapon();
 
 	UPROPERTY(EditAnywhere, BlueprintreadOnly)
-	class UTP_WeaponComponent* WeaponComp;
-
-	UPROPERTY(EditAnywhere, BlueprintreadOnly)
-	class UTP_PickUpComponent* PickUpComp;	
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	class USkeletalMeshComponent* Mesh;
-
-	UPROPERTY(EditAnywhere, BlueprintreadOnly)
-	class UTP_InteractionComponent* InteractComp;
-
-	UPROPERTY(EditAnywhere, BlueprintreadOnly)
-	class UWidgetComponent* InteractUI;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bCanInteraction;
-
-	UPROPERTY(EditAnywhere, BlueprintreadOnly)
 	FName WeaponTag;
 
-	UPROPERTY(EditAnywhere, BlueprintreadOnly)
-	AValorantCharacter* OverlappedCharacter;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	virtual void PostInitializeComponents() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	void PickUp(AValorantCharacter* Character);
-	void Interact(AValorantCharacter* Character);
-	void EndInteract();
-	void DetachWeapon();
-	void EnableInteraction();
-	void SetCanFire(bool Flag);
-
-	void Drop();
+	virtual void PickUp(AValorantCharacter* Character) {};
+	virtual void Interact(AValorantCharacter* Character) {};
+	virtual void EndInteract() {};
+	virtual void DetachWeapon() {};
+	virtual void EnableInteraction() {};
+	virtual void SetCanFire(bool Flag) {};
 
 };

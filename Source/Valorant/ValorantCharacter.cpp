@@ -16,6 +16,8 @@
 #include "CollisionQueryParams.h"
 #include "BaseGameState.h"
 #include "GameFramework/PlayerController.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "Knife.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -44,7 +46,6 @@ AValorantCharacter::AValorantCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
-	CurrentWeapon = nullptr;
 }
 
 void AValorantCharacter::BeginPlay()
@@ -60,6 +61,15 @@ void AValorantCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+	FActorSpawnParameters spawnParams;
+	FRotator rotator;
+	FVector spawnLocation = FVector::ZeroVector;
+	Knife = GetWorld()->SpawnActor<AKnife>(AKnife::StaticClass(), spawnLocation, rotator, spawnParams);
+
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	Knife->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("KnifePoint")));
+
+	CurrentWeapon = Knife;
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -149,6 +159,9 @@ void AValorantCharacter::RemoveFromWeapon(FString Tag)
 
 void AValorantCharacter::SetCurrentWeapon(AWeapon* Weapon)
 {
+	CurrentWeapon->SetActorHiddenInGame(true);
+	CurrentWeapon->SetCanFire(false);
+
 	CurrentWeapon = Weapon;
 	Weapon->SetActorHiddenInGame(false);
 }
@@ -198,6 +211,10 @@ void AValorantCharacter::QuickSlotOne(const FInputActionValue& Value)
 			//CurrentWeapon->SetCanFire(false);
 			Spike->SetActorHiddenInGame(true);
 		}
+		if (Knife)
+		{
+			Knife->SetActorHiddenInGame(true);
+		}
 		SetCurrentWeapon(Weapon);
 	}
 	else
@@ -239,6 +256,19 @@ void AValorantCharacter::QuickSlotTwo(const FInputActionValue& Value)
 
 void AValorantCharacter::QuickSlotThree(const FInputActionValue& Value)
 {
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetActorHiddenInGame(true);
+		CurrentWeapon->SetCanFire(false);
+	}
+	if (Spike)
+	{
+		//CurrentWeapon->SetCanFire(false);
+		Spike->SetActorHiddenInGame(true);
+	}
+	SetCurrentWeapon(Knife);
+	Knife->SetCanAttack(true);
+	Knife->SetActorHiddenInGame(false);
 }
 
 void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)

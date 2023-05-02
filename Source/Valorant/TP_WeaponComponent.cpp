@@ -79,7 +79,9 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 
 	//!이미 장착한 무기가 없음
 	AWeapon* Weapon = Cast<AWeapon>(GetOwner());
-	if (Character->GetCurrentWeapon() == nullptr)
+	auto Current = Character->GetCurrentWeapon();
+	//현재무기가 칼이면
+	if (Current->WeaponTag == "Knife")
 	{
 		CanFire = true;
 		if (Weapon)
