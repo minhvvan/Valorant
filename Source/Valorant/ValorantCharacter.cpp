@@ -75,6 +75,8 @@ void AValorantCharacter::BeginPlay()
 	Knife->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("KnifePoint")));
 
 	CurrentWeapon = Knife;
+	auto HP = Stat->GetHp();
+	UE_LOG(LogTemp, Warning, TEXT("HP: %d"), HP);
 }
 
 //////////////////////////////////////////////////////////////////////////// Input

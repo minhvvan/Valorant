@@ -13,15 +13,15 @@ UStatComponent::UStatComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
-	Code = 1;
+	Name = "Sage";
 }
 
-void UStatComponent::SetInfo(int32 code)
+void UStatComponent::SetInfo(FString name)
 {
 	auto MyGameInstance = Cast<UDefaultGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (MyGameInstance)
 	{
-		auto StatData = MyGameInstance->GetStatData(code);
+		auto StatData = MyGameInstance->GetStatData(name);
 		if (StatData)
 		{
 			SetHp(StatData->MaxHp);
@@ -43,7 +43,7 @@ void UStatComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	SetInfo(Code);
+	SetInfo(Name);
 }
 
 

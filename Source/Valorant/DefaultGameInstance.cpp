@@ -14,7 +14,7 @@ UDefaultGameInstance::UDefaultGameInstance()
 	MyStats = DATA.Object;
 }
 
-FCharacterStat* UDefaultGameInstance::GetStatData(int32 code)
+FCharacterStat* UDefaultGameInstance::GetStatData(FString name)
 {
-	return MyStats->FindRow<FCharacterStat>(*FString::FromInt(code), TEXT(""));
+	return MyStats->FindRow<FCharacterStat>(*name, TEXT(""));
 }

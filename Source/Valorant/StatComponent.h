@@ -15,7 +15,7 @@ class VALORANT_API UStatComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UStatComponent();
-	void SetInfo(int32 code);
+	void SetInfo(FString name);
 	int32 GetHp() { return Hp; }
 	int32 GetMaxHp() { return MaxHp; }
 	void SetHp(int32 NewHp);
@@ -30,7 +30,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UPROPERTY(EditAnywhere, Category = Stat, Meta = (AllowPrivateAccess = true))
-	int32 Code;
+	FString Name;
 
 	UPROPERTY(EditAnywhere, Category = Stat, Meta = (AllowPrivateAccess = true))
 	int32 MaxHp;

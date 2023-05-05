@@ -33,7 +33,7 @@ public:
 
 	virtual void Init() override;
 
-	FCharacterStat* GetStatData(int32 code);
+	FCharacterStat* GetStatData(FString name);
 
 private:
 	UPROPERTY()
