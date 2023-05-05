@@ -12,9 +12,24 @@ void ABaseGameState::StartTimer()
 void ABaseGameState::Expire()
 {
 	UE_LOG(LogTemp, Warning, TEXT("BOOOOOOOOOOOOOMMMM"));
+	RedScore++;
 }
 
 void ABaseGameState::Clear()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Clear Spike"));
+	BlueScore++;
 }
+
+void ABaseGameState::CheckScore()
+{
+	if (RedScore == 10)
+	{
+		//Red ½Â
+	}
+	else if (BlueScore == 10)
+	{
+		//blue ½Â
+	}
+}
+

@@ -21,9 +21,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* Mesh;
 
+	UPROPERTY(EditAnywhere, BlueprintreadOnly)
+	class UTP_InteractionComponent* InteractComp;
+
+	UPROPERTY(EditAnywhere, BlueprintreadOnly)
+	class UWidgetComponent* InteractUI;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanInteraction;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 
 public:	
 	// Called every frame
@@ -36,9 +46,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Spike)
 	void SetCanInstall(bool flag) { CanInstall = flag; };
 
+	UFUNCTION(BlueprintCallable, Category = Spike)
+	bool GetCanInteraction() { return bCanInteraction; };
+
+	UFUNCTION(BlueprintCallable, Category = Spike)
+	void SetCanInteraction(bool flag) { bCanInteraction = flag; };
+
+	void Interact(AValorantCharacter* Character);
+	void EndInteract();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool CanInstall = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool CanPickUp = true;
+
+private:
+	class AValorantCharacter* OverlappedCharacter;
 };

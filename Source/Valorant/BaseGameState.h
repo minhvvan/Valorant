@@ -21,4 +21,10 @@ public:
 	void StartTimer();
 	void Expire();
 	void Clear();
+
+	void CheckScore();
+
+private:
+	int32 RedScore = 0;
+	int32 BlueScore = 0;
 };

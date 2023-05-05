@@ -69,6 +69,9 @@ class AValorantCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
 	class ASpike* Spike;
 
+	UPROPERTY(VisibleAnywhere)
+	class UStatComponent* Stat;
+
 public:
 	AValorantCharacter();
 
@@ -80,6 +83,12 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnInstall FDetachWidget;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnInstall OnUnInstall;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnInstall OnUnInstallComplete;
 
 protected:
 	virtual void BeginPlay();
@@ -93,6 +102,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
 	bool bHasPistol;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bCanUnInstall;
 
 	/** Setter to set the bool */
 	UFUNCTION(BlueprintCallable, Category = Weapon)

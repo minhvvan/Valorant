@@ -19,6 +19,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Knife.h"
 #include "BaseGameState.h"
+#include "StatComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -47,6 +48,9 @@ AValorantCharacter::AValorantCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
+	Stat = CreateDefaultSubobject<UStatComponent>(TEXT("STAT"));
+
+	bCanUnInstall = false;
 }
 
 void AValorantCharacter::BeginPlay()
@@ -291,6 +295,10 @@ void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
 			CurrentWeapon->SetActorHiddenInGame(true);
 		}
 	}
+	else
+	{
+		OnUnInstall.Broadcast();
+	}
 }
 
 void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
@@ -367,8 +375,24 @@ void AValorantCharacter::Install(const FInputActionValue& Value)
 				//Spike->EnableInteraction();
 				Spike->SetActorHiddenInGame(false);
 			}
+			Spike->SetCanInstall(false);
 			Spike->CanPickUp = false;
+			Spike->SetCanInteraction(true);
 			Spike = nullptr;
+		}
+	}
+	else
+	{
+		//스파이크 해제
+		if (bCanUnInstall)
+		{
+			//해제 성공
+			FDetachWidget.Broadcast();
+
+			auto GS = GetWorld()->GetGameState<ABaseGameState>();
+			GS->Clear();
+
+			OnUnInstallComplete.Broadcast();
 		}
 	}
 }
