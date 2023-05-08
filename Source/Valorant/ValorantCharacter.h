@@ -140,6 +140,9 @@ public:
 	UFUNCTION()
 	void SetSpike(class ASpike* S) { Spike = S; };
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	void Death();
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);

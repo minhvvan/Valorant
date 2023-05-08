@@ -76,7 +76,6 @@ void AValorantCharacter::BeginPlay()
 
 	CurrentWeapon = Knife;
 	auto HP = Stat->GetHp();
-	UE_LOG(LogTemp, Warning, TEXT("HP: %d"), HP);
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -171,6 +170,36 @@ void AValorantCharacter::SetCurrentWeapon(AWeapon* Weapon)
 
 	CurrentWeapon = Weapon;
 	Weapon->SetActorHiddenInGame(false);
+}
+
+float AValorantCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	UE_LOG(LogTemp, Warning, TEXT("take Damage: %f"), DamageAmount);
+	
+	if (Stat)
+	{
+		auto HP = Stat->GetHp();
+		HP -= DamageAmount;
+		Stat->SetHp(HP);
+	}
+	return 0.0f;
+}
+
+void AValorantCharacter::Death()
+{
+	//Á×´Â Montage Play
+	
+	//µé°íÀÖ´ø ¹«±â ¶³±¸±â
+	//Ä®Àº ¾È¶³±À
+	if (CurrentWeapon)
+	{
+		if (!CurrentWeapon->ActorHasTag("Knife"))
+		{
+			DetachWeapon((CurrentWeapon->WeaponTag).ToString());
+		}
+	}
+	Destroy();
 }
 
 void AValorantCharacter::Move(const FInputActionValue& Value)

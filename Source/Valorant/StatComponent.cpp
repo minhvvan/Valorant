@@ -4,6 +4,7 @@
 #include "StatComponent.h"
 #include "DefaultGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "ValorantCharacter.h"
 
 // Sets default values for this component's properties
 UStatComponent::UStatComponent()
@@ -33,7 +34,14 @@ void UStatComponent::SetInfo(FString name)
 void UStatComponent::SetHp(int32 NewHp)
 {
 	Hp = NewHp;
-	if (Hp < 0) Hp = 0;
+	if (Hp <= 0)
+	{
+		Hp = 0;
+		auto Player = Cast<AValorantCharacter>(GetOwner());
+		Player->Death();
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("HP: %d"), Hp);
 }
 
 
