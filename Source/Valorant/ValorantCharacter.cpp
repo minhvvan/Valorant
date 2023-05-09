@@ -313,7 +313,6 @@ void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
 	{
 		if (Spike->GetCanInstall())
 		{
-			//~TODO: 설치 progress 표시
 			UE_LOG(LogTemp, Warning, TEXT("Install Start"));
 			OnInstall.Broadcast();
 		}
@@ -328,7 +327,10 @@ void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
 	}
 	else
 	{
-		OnUnInstall.Broadcast();
+		if (bCanUnInstall)
+		{
+			OnUnInstall.Broadcast();
+		}
 	}
 }
 

@@ -86,6 +86,7 @@ void ASpike::EndInteract()
 {
 	if (OverlappedCharacter)
 	{
+		OverlappedCharacter->bCanUnInstall = false;
 		OverlappedCharacter = nullptr;
 	}
 
