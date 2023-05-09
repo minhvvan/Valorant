@@ -57,6 +57,11 @@ void UTP_WeaponComponent::Fire()
 	TArray<AActor*> IgnoreActors; // 무시할 액터들.
 	IgnoreActors.Add(GetOwner());
 	IgnoreActors.Add(Player);
+	auto Weapons = Player->GetWeapons();
+	for (auto& weapon : Weapons)
+	{
+		IgnoreActors.Add(weapon.Value);
+	}
 
 	FHitResult HitResult; // 히트 결과 값 받을 변수.
 

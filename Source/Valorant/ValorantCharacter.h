@@ -129,6 +129,9 @@ public:
 	void RemoveFromWeapon(FString Tag);
 
 	UFUNCTION()
+	TMap<FString, class AWeapon*> GetWeapons() { return Weapons; };
+
+	UFUNCTION()
 	class AWeapon* GetCurrentWeapon() { return CurrentWeapon; };
 
 	UFUNCTION()
