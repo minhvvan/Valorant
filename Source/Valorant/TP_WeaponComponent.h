@@ -78,6 +78,8 @@ private:
 	FRotator OriginalCameraRotation;
 	FRotator TargetCameraRotation;
 	float MaxCameraRecoil = 30.f;
+	float MaxLeftYaw= -10.f;
+	float MaxRightYaw = 10.f;
 
 public:
 	void ApplyCameraRecoil();
@@ -95,6 +97,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Gun")
 	float RecoilRecoveryTime;
+
+	bool bFiring = false;
+
+	int FireCount = 0;
 
 	FTimerHandle CameraRecoilRecoveryTimerHandle;
 };

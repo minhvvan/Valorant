@@ -109,13 +109,38 @@ void UTP_WeaponComponent::Fire()
 
 		if (PlayerCamera)
 		{
-			OriginalCameraRotation = PlayerCamera->GetComponentRotation();
-
-			TargetCameraRotation.Pitch += RecoilStrength;
-			if (TargetCameraRotation.Pitch > MaxCameraRecoil)
+			if (!bFiring)
 			{
-				TargetCameraRotation.Pitch = MaxCameraRecoil;
+				OriginalCameraRotation = PlayerCamera->GetComponentRotation();
+				bFiring = true;
 			}
+
+			if (FireCount < 5)
+			{
+				TargetCameraRotation.Pitch += RecoilStrength;
+				if (TargetCameraRotation.Pitch > MaxCameraRecoil)
+				{
+					TargetCameraRotation.Pitch = MaxCameraRecoil;
+				}
+			}
+			else if (FireCount < 15) 
+			{
+				TargetCameraRotation.Yaw -= RecoilStrength;
+				if (TargetCameraRotation.Yaw < MaxLeftYaw)
+				{
+					TargetCameraRotation.Yaw = MaxLeftYaw;
+				}
+			}
+			else
+			{
+				TargetCameraRotation.Yaw += RecoilStrength;
+				if (TargetCameraRotation.Yaw > MaxRightYaw)
+				{
+					TargetCameraRotation.Yaw = MaxRightYaw;
+				}
+			}
+			FireCount++;
+
 		}
 
 		ApplyCameraRecoil();
@@ -245,7 +270,6 @@ void UTP_WeaponComponent::ApplyCameraRecoil()
 	if (PlayerCamera)
 	{
 		FRotator NewCameraRotation = OriginalCameraRotation + TargetCameraRotation;
-		
 		// 카메라 컴포넌트의 회전값 설정
 		PlayerCamera->SetWorldRotation(NewCameraRotation);
 	}
@@ -254,7 +278,10 @@ void UTP_WeaponComponent::ApplyCameraRecoil()
 void UTP_WeaponComponent::EndFire()
 {
 	CurrentRecoveryTime = RecoilRecoveryTime;
-	UE_LOG(LogTemp, Warning, TEXT("EndFire"));
+	TargetCameraRotation = FRotator::ZeroRotator;
+
+	FireCount = 0;
+	bFiring = false;
 }
 
 
