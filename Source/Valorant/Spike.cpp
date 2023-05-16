@@ -57,6 +57,8 @@ void ASpike::PickUp(AValorantCharacter* Character)
 {
 	if (CanPickUp)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("PickUp"));
+
 		Character->SetSpike(this);
 		SetCanInteraction(false);
 

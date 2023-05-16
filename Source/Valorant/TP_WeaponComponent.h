@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/TimelineComponent.h"
 #include "TP_WeaponComponent.generated.h"
 
 class AValorantCharacter;
@@ -50,7 +51,7 @@ public:
 	
 	/** Make the weapon Fire a Projectile */
 	UFUNCTION(BlueprintCallable, Category="Weapon")
-	void Fire();
+	void Fire();	
 
 	UFUNCTION()
 	void DetachWeapon();
@@ -60,6 +61,9 @@ protected:
 	/** Ends gameplay for this component. */
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+	UFUNCTION()
+	virtual void BeginPlay();
 
 private:
 	/** The Character holding this weapon*/
@@ -67,4 +71,30 @@ private:
 
 	bool Once = true;
 	bool CanFire = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UCameraComponent* PlayerCamera;
+
+	FRotator OriginalCameraRotation;
+	FRotator TargetCameraRotation;
+	float MaxCameraRecoil = 30.f;
+
+public:
+	void ApplyCameraRecoil();
+	void EndFire();
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	float RecoilStrength;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	float CurrentRecoveryTime = 0.f;
+
+	float CurrentRecoilStrength;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	float RecoilRecoveryTime;
+
+	FTimerHandle CameraRecoilRecoveryTimerHandle;
 };

@@ -15,6 +15,9 @@
 #include "Engine/DecalActor.h"
 #include "Components/DecalComponent.h"
 #include "Math/Vector.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerController.h"
+
 
 // Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent()
@@ -29,7 +32,6 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 		ShotHoleMat = (UMaterial*)Material.Object;
 	}
 }
-
 
 void UTP_WeaponComponent::Fire()
 {
@@ -75,10 +77,6 @@ void UTP_WeaponComponent::Fire()
 		EDrawDebugTrace::None,
 		HitResult,
 		true
-		// 여기 밑에 3개는 기본 값으로 제공됨. 바꾸려면 적으면 됨.
-		//, FLinearColor::Red
-		//, FLinearColor::Green
-		//, 5.0f
 	);
 
 	if (Result == true)
@@ -109,13 +107,22 @@ void UTP_WeaponComponent::Fire()
 			UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
 		}
 
+		if (PlayerCamera)
+		{
+			OriginalCameraRotation = PlayerCamera->GetComponentRotation();
+
+			TargetCameraRotation.Pitch += RecoilStrength;
+			if (TargetCameraRotation.Pitch > MaxCameraRecoil)
+			{
+				TargetCameraRotation.Pitch = MaxCameraRecoil;
+			}
+		}
+
+		ApplyCameraRecoil();
+
 		auto victim = HitResult.GetActor();
 		UGameplayStatics::ApplyDamage(victim, 10, Player->GetController(), Player, NULL);
 	}
-
-
-	
-	
 	// Try and play the sound if specified
 	if (FireSound != nullptr)
 	{
@@ -134,7 +141,6 @@ void UTP_WeaponComponent::Fire()
 	}
 }
 
-
 void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FString Tag)
 {
 	Character = TargetCharacter;
@@ -143,33 +149,37 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		return;
 	}
 
+	PlayerCamera = Character->GetFirstPersonCameraComponent();
+
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 
 	//!이미 장착한 무기가 없음
 	AWeapon* Weapon = Cast<AWeapon>(GetOwner());
-	auto Current = Character->GetCurrentWeapon();
-	//현재무기가 칼이면
-	if (Current->WeaponTag == "Knife")
+	if (auto Current = Character->GetCurrentWeapon())
 	{
-		CanFire = true;
-		if (Weapon)
-		{
-			Character->SetCurrentWeapon(Weapon);
-		}
-	}
-	else 
-	{
-		//현재 무기가 바뀐것
-		if (Character->GetCurrentWeapon()->ActorHasTag(FName(*Tag)))
+		//현재무기가 칼이면
+		if (Current->WeaponTag == "Knife")
 		{
 			CanFire = true;
+			if (Weapon)
+			{
+				Character->SetCurrentWeapon(Weapon);
+			}
 		}
 		else
 		{
-			//현재 무기랑 다른 무기
-			CanFire = false;
-			Weapon->SetActorHiddenInGame(true);
+			//현재 무기가 바뀐것
+			if (Character->GetCurrentWeapon()->ActorHasTag(FName(*Tag)))
+			{
+				CanFire = true;
+			}
+			else
+			{
+				//현재 무기랑 다른 무기
+				CanFire = false;
+				Weapon->SetActorHiddenInGame(true);
+			}
 		}
 	}
 
@@ -184,7 +194,7 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 
 	if (Once)
 	{
-		if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
+		if(APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 		{
 			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 			{
@@ -196,9 +206,10 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 			{
 				// Fire
 				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
+				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &UTP_WeaponComponent::EndFire);
 			}
+			Once = false;
 		}
-		Once = false;
 	}
 }
 
@@ -207,7 +218,6 @@ void UTP_WeaponComponent::DetachWeapon()
 	CanFire = false;
 	Character = nullptr;
 }
-
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -221,6 +231,45 @@ void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->RemoveMappingContext(FireMappingContext);
+		}
+	}
+}
+
+void UTP_WeaponComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void UTP_WeaponComponent::ApplyCameraRecoil()
+{
+	if (PlayerCamera)
+	{
+		FRotator NewCameraRotation = OriginalCameraRotation + TargetCameraRotation;
+		
+		// 카메라 컴포넌트의 회전값 설정
+		PlayerCamera->SetWorldRotation(NewCameraRotation);
+	}
+}
+
+void UTP_WeaponComponent::EndFire()
+{
+	CurrentRecoveryTime = RecoilRecoveryTime;
+	UE_LOG(LogTemp, Warning, TEXT("EndFire"));
+}
+
+
+void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	CurrentRecoveryTime -= DeltaTime;
+	if (PlayerCamera)
+	{
+		if (0.f <= CurrentRecoveryTime)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Recover"));
+			FRotator SmoothedRotation = FMath::RInterpTo(PlayerCamera->GetComponentRotation(), OriginalCameraRotation, GetWorld()->GetDeltaSeconds(), 10.f);
+			PlayerCamera->SetWorldRotation(SmoothedRotation);
 		}
 	}
 }
