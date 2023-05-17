@@ -40,114 +40,126 @@ void UTP_WeaponComponent::Fire()
 		return;
 	}
 
-	//Line Trage로 Hit 판정
-	auto Player = Cast<AValorantCharacter>(GetOwner()->GetAttachParentActor());
-	auto Camera = Player->GetFirstPersonCameraComponent();
-	FVector CameraLoc = Camera->GetComponentLocation();
-	FVector CameraForward = Camera->GetForwardVector();
-	FVector StartLoc = CameraLoc; // 레이저 시작 지점.
-	FVector EndLoc = CameraLoc + (CameraForward * 5000.0f); // 레이저 끝나는 지점.
-
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
-	TEnumAsByte<EObjectTypeQuery> WorldStatic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic);
-	TEnumAsByte<EObjectTypeQuery> WorldDynamic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic);
-	TEnumAsByte<EObjectTypeQuery> Pawn = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn);
-	ObjectTypes.Add(WorldStatic);
-	ObjectTypes.Add(WorldDynamic);
-	ObjectTypes.Add(Pawn);
-
-	TArray<AActor*> IgnoreActors; // 무시할 액터들.
-	IgnoreActors.Add(GetOwner());
-	IgnoreActors.Add(Player);
-	auto Weapons = Player->GetWeapons();
-	for (auto& weapon : Weapons)
+	//~~Camera Recoil
+	if (PlayerCamera)
 	{
-		IgnoreActors.Add(weapon.Value);
-	}
-
-	FHitResult HitResult; // 히트 결과 값 받을 변수.
-
-	bool Result = UKismetSystemLibrary::LineTraceSingleForObjects(
-		GetWorld(),
-		StartLoc,
-		EndLoc,
-		ObjectTypes,
-		false,
-		IgnoreActors, // 무시할 것이 없다고해도 null을 넣을 수 없다.
-		EDrawDebugTrace::None,
-		HitResult,
-		true
-	);
-
-	if (Result == true)
-	{
-		FVector ImpactPoint = HitResult.ImpactPoint;
-		FVector impactNormal = HitResult.ImpactNormal;
-
-		FVector basis = FVector(0, 0, 1);
-		if (fabsf(impactNormal.Y) > 0.8) {
-			basis = FVector(1, 0, 1);
-		}
-		FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
-		FVector forward = FVector::CrossProduct(right, impactNormal);
-		FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
-		FRotator theRotation = bvm.Rotator();
-
-		//Decal
-		ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
-		if (decal)
+		if (!bFiring)
 		{
-			//땅은 잘 나오는데 벽은 회전이 안돼서 이상하게 나옴
-			decal->SetDecalMaterial(ShotHoleMat);
-			decal->SetLifeSpan(2.0f);
-			decal->GetDecal()->DecalSize = FVector(5.0f, 5.0f, 5.0f);
+			OriginalCameraRotation = PlayerCamera->GetRelativeRotation();
+			bFiring = true;
+		}
+
+		auto randomRecoil = FMath::RandRange(0.5, 0.8);
+		//~위쪽 반동
+		if (TargetCameraRotation.Pitch < MaxCameraRecoil)
+		{
+			TargetCameraRotation.Pitch += (RecoilStrength * randomRecoil);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
-		}
-
-		if (PlayerCamera)
-		{
-			if (!bFiring)
+			//~좌우 반동
+			if (RemainNum > 0)
 			{
-				OriginalCameraRotation = PlayerCamera->GetComponentRotation();
-				bFiring = true;
+				RemainNum--;
+			}
+			else if (RemainNum == 0)
+			{
+				RightTurn = !RightTurn;
+				RemainNum = FMath::RandRange(5, 13);
 			}
 
-			if (FireCount < 5)
+			if (RightTurn)
 			{
-				TargetCameraRotation.Pitch += RecoilStrength;
-				if (TargetCameraRotation.Pitch > MaxCameraRecoil)
-				{
-					TargetCameraRotation.Pitch = MaxCameraRecoil;
-				}
-			}
-			else if (FireCount < 15) 
-			{
-				TargetCameraRotation.Yaw -= RecoilStrength;
-				if (TargetCameraRotation.Yaw < MaxLeftYaw)
-				{
-					TargetCameraRotation.Yaw = MaxLeftYaw;
-				}
-			}
-			else
-			{
-				TargetCameraRotation.Yaw += RecoilStrength;
+				TargetCameraRotation.Yaw += (RecoilStrength * randomRecoil);
 				if (TargetCameraRotation.Yaw > MaxRightYaw)
 				{
 					TargetCameraRotation.Yaw = MaxRightYaw;
 				}
 			}
-			FireCount++;
+			else
+			{
+				TargetCameraRotation.Yaw -= (RecoilStrength * randomRecoil);
+				if (TargetCameraRotation.Yaw < MaxLeftYaw)
+				{
+					TargetCameraRotation.Yaw = MaxLeftYaw;
+				}
+			}
+		}
+		ApplyCameraRecoil();
+	}
 
+	//~HIt Check & Bullet Recoil
+	{
+		FVector CameraLoc = PlayerCamera->GetComponentLocation();
+		FVector CameraForward = PlayerCamera->GetForwardVector();
+		FVector StartLoc = CameraLoc;
+		UE_LOG(LogTemp, Warning, TEXT("Fire:%s"), *FString(BulletOffset.ToString()));
+		FVector EndLoc = CameraLoc + ((CameraForward + BulletOffset) * Range);
+
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
+		TEnumAsByte<EObjectTypeQuery> WorldStatic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic);
+		TEnumAsByte<EObjectTypeQuery> WorldDynamic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic);
+		TEnumAsByte<EObjectTypeQuery> Pawn = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn);
+		ObjectTypes.Add(WorldStatic);
+		ObjectTypes.Add(WorldDynamic);
+		ObjectTypes.Add(Pawn);
+
+		TArray<AActor*> IgnoreActors; // 무시할 액터들.
+		IgnoreActors.Add(GetOwner());
+		IgnoreActors.Add(Character);
+		auto Weapons = Character->GetWeapons();
+		for (auto& weapon : Weapons)
+		{
+			IgnoreActors.Add(weapon.Value);
 		}
 
-		ApplyCameraRecoil();
+		FHitResult HitResult;
 
-		auto victim = HitResult.GetActor();
-		UGameplayStatics::ApplyDamage(victim, 10, Player->GetController(), Player, NULL);
+		bool Result = UKismetSystemLibrary::LineTraceSingleForObjects(
+			GetWorld(),
+			StartLoc,
+			EndLoc,
+			ObjectTypes,
+			false,
+			IgnoreActors,
+			EDrawDebugTrace::ForDuration,
+			HitResult,
+			true
+		);
+
+		if (Result == true)
+		{
+			FVector ImpactPoint = HitResult.ImpactPoint;
+			FVector impactNormal = HitResult.ImpactNormal;
+
+			FVector basis = FVector(0, 0, 1);
+			if (fabsf(impactNormal.Y) > 0.8) {
+				basis = FVector(1, 0, 1);
+			}
+			FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
+			FVector forward = FVector::CrossProduct(right, impactNormal);
+			FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
+			FRotator theRotation = bvm.Rotator();
+
+			//Decal
+			ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
+			if (decal)
+			{
+				//땅은 잘 나오는데 벽은 회전이 안돼서 이상하게 나옴
+				decal->SetDecalMaterial(ShotHoleMat);
+				decal->SetLifeSpan(2.0f);
+				decal->GetDecal()->DecalSize = FVector(5.0f, 5.0f, 5.0f);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
+			}
+
+			auto victim = HitResult.GetActor();
+			UGameplayStatics::ApplyDamage(victim, 10, Character->GetController(), Character, NULL);
+		}
 	}
+	
 	// Try and play the sound if specified
 	if (FireSound != nullptr)
 	{
@@ -232,6 +244,7 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 				// Fire
 				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
 				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &UTP_WeaponComponent::EndFire);
+				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &UTP_WeaponComponent::EndFire);
 			}
 			Once = false;
 		}
@@ -263,6 +276,17 @@ void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void UTP_WeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (RecoilStrengthCurve)
+	{
+		FOnTimelineVector CurveCallbak;
+		CurveCallbak.BindUFunction(this, FName("OnBulletRecoilProgress"));
+
+		RecoilOffset.AddInterpVector(RecoilStrengthCurve, CurveCallbak);
+		RecoilOffset.SetLooping(true);
+
+		RecoilOffset.Play();
+	}
 }
 
 void UTP_WeaponComponent::ApplyCameraRecoil()
@@ -270,18 +294,19 @@ void UTP_WeaponComponent::ApplyCameraRecoil()
 	if (PlayerCamera)
 	{
 		FRotator NewCameraRotation = OriginalCameraRotation + TargetCameraRotation;
-		// 카메라 컴포넌트의 회전값 설정
-		PlayerCamera->SetWorldRotation(NewCameraRotation);
+		PlayerCamera->SetRelativeRotation(NewCameraRotation);
 	}
 }
 
 void UTP_WeaponComponent::EndFire()
 {
-	CurrentRecoveryTime = RecoilRecoveryTime;
 	TargetCameraRotation = FRotator::ZeroRotator;
 
-	FireCount = 0;
 	bFiring = false;
+	RemainNum = 0;
+	RightTurn = false;
+	RecoilOffset.SetPlaybackPosition(0, false);
+	BulletOffset = FVector::ZeroVector;
 }
 
 
@@ -289,14 +314,33 @@ void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	CurrentRecoveryTime -= DeltaTime;
+	if (bFiring)
+	{
+		RecoilOffset.TickTimeline(DeltaTime);
+	}
+
 	if (PlayerCamera)
 	{
-		if (0.f <= CurrentRecoveryTime)
+		//UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(TargetCameraRotation.ToString()));
+
+		if (!PlayerCamera->GetRelativeRotation().IsNearlyZero(0.1))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Recover"));
-			FRotator SmoothedRotation = FMath::RInterpTo(PlayerCamera->GetComponentRotation(), OriginalCameraRotation, GetWorld()->GetDeltaSeconds(), 10.f);
-			PlayerCamera->SetWorldRotation(SmoothedRotation);
+			FRotator SmoothedRotation = FMath::RInterpTo(PlayerCamera->GetRelativeRotation(), FRotator::ZeroRotator, GetWorld()->GetDeltaSeconds(), RecoilRecoveryTime);
+			PlayerCamera->SetRelativeRotation(SmoothedRotation);
+		}
+		else 
+		{
+			PlayerCamera->SetRelativeRotation(FRotator::ZeroRotator);
 		}
 	}
+}
+
+void UTP_WeaponComponent::OnBulletRecoilProgress(FVector BulletRecoil)
+{
+	//Z: 상하, Y: 죄우
+	auto tempZ = FMath::RandRange(-.01f, .03f);
+	auto tempY = FMath::RandRange(-.1f, .3f);
+	BulletOffset = { 0, tempY, tempZ };
+
+	BulletOffset *= BulletRecoil;
 }

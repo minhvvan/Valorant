@@ -77,9 +77,12 @@ private:
 
 	FRotator OriginalCameraRotation;
 	FRotator TargetCameraRotation;
-	float MaxCameraRecoil = 30.f;
+	float MaxCameraRecoil = 10.f;
 	float MaxLeftYaw= -10.f;
 	float MaxRightYaw = 10.f;
+
+	float TimelineCursor;
+	FVector BulletOffset = {0, 0, 0};
 
 public:
 	void ApplyCameraRecoil();
@@ -87,20 +90,26 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun")
+	UCurveVector* RecoilStrengthCurve;
+
+	FTimeline RecoilOffset;
+
 	UPROPERTY(EditAnywhere, Category = "Gun")
 	float RecoilStrength;
 
 	UPROPERTY(EditAnywhere, Category = "Gun")
-	float CurrentRecoveryTime = 0.f;
-
-	float CurrentRecoilStrength;
+	float RecoilRecoveryTime;
 
 	UPROPERTY(EditAnywhere, Category = "Gun")
-	float RecoilRecoveryTime;
+	float Range;
 
 	bool bFiring = false;
 
-	int FireCount = 0;
+	int RemainNum = 0;
 
-	FTimerHandle CameraRecoilRecoveryTimerHandle;
+	bool RightTurn = false;
+
+	UFUNCTION()
+	void OnBulletRecoilProgress(FVector BulletRecoil);
 };
