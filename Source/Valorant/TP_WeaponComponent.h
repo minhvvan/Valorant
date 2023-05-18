@@ -27,6 +27,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FireAnimation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gun")
+	UAnimMontage* ReloadAnimation;
+
 	/** Gun muzzle's offset from the characters location */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	FVector MuzzleOffset;
@@ -112,4 +115,26 @@ public:
 
 	UFUNCTION()
 	void OnBulletRecoilProgress(FVector BulletRecoil);
+
+	//Bullet
+	int32 CurrentBullet;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	int32 RemainBullet;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	int32 ReloadBullet;
+
+	void Reload();
+
+	TSubclassOf<class UBulletWidget> MainHUDWidgetClass;
+	class UBulletWidget* WidgetBullet;
+
+	UPROPERTY()
+	class UAnimInstance* AnimInstance;
+
+	UFUNCTION()
+	void ReloadAnimEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	const FString ReloadName = "FP_Reload";
 };

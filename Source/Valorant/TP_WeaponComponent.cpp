@@ -17,7 +17,8 @@
 #include "Math/Vector.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
-
+#include "DefaultAnimInstance.h"
+#include "BulletWidget.h"
 
 // Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent()
@@ -31,6 +32,12 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 	{
 		ShotHoleMat = (UMaterial*)Material.Object;
 	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Widget/WBP_Bullet.WBP_Bullet_C'"));
+	if (UW.Succeeded())
+	{
+		MainHUDWidgetClass = UW.Class;
+	}
 }
 
 void UTP_WeaponComponent::Fire()
@@ -38,6 +45,12 @@ void UTP_WeaponComponent::Fire()
 	if (Character == nullptr || Character->GetController() == nullptr || !CanFire)
 	{
 		return;
+	}
+
+	CurrentBullet--;
+	if (WidgetBullet)
+	{
+		WidgetBullet->SetCurrentBullet(CurrentBullet);
 	}
 
 	//~~Camera Recoil
@@ -93,7 +106,6 @@ void UTP_WeaponComponent::Fire()
 		FVector CameraLoc = PlayerCamera->GetComponentLocation();
 		FVector CameraForward = PlayerCamera->GetForwardVector();
 		FVector StartLoc = CameraLoc;
-		UE_LOG(LogTemp, Warning, TEXT("Fire:%s"), *FString(BulletOffset.ToString()));
 		FVector EndLoc = CameraLoc + ((CameraForward + BulletOffset) * Range);
 
 		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
@@ -122,7 +134,7 @@ void UTP_WeaponComponent::Fire()
 			ObjectTypes,
 			false,
 			IgnoreActors,
-			EDrawDebugTrace::ForDuration,
+			EDrawDebugTrace::None,
 			HitResult,
 			true
 		);
@@ -159,7 +171,13 @@ void UTP_WeaponComponent::Fire()
 			UGameplayStatics::ApplyDamage(victim, 10, Character->GetController(), Character, NULL);
 		}
 	}
-	
+
+	if (CurrentBullet == 0)
+	{
+		Reload();
+		return;
+	}
+
 	// Try and play the sound if specified
 	if (FireSound != nullptr)
 	{
@@ -170,7 +188,6 @@ void UTP_WeaponComponent::Fire()
 	if (FireAnimation != nullptr)
 	{
 		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
 		if (AnimInstance != nullptr)
 		{
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
@@ -184,6 +201,25 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 	if (Character == nullptr)
 	{
 		return;
+	}
+
+	AnimInstance = Cast<UAnimInstance>(Character->GetMesh1P()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		AnimInstance->OnMontageEnded.AddDynamic(this, &UTP_WeaponComponent::ReloadAnimEnded);
+	}
+
+	if (MainHUDWidgetClass)
+	{
+		WidgetBullet = Cast<UBulletWidget>(CreateWidget(GetWorld(), MainHUDWidgetClass));
+		if (IsValid(WidgetBullet))
+		{
+			// 위젯을 뷰포트에 띄우는 함수
+			CurrentBullet = ReloadBullet;
+			WidgetBullet->AddToViewport();
+			WidgetBullet->SetCurrentBullet(CurrentBullet);
+			WidgetBullet->SetRemainBullet(RemainBullet);
+		}
 	}
 
 	PlayerCamera = Character->GetFirstPersonCameraComponent();
@@ -309,7 +345,6 @@ void UTP_WeaponComponent::EndFire()
 	BulletOffset = FVector::ZeroVector;
 }
 
-
 void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -343,4 +378,47 @@ void UTP_WeaponComponent::OnBulletRecoilProgress(FVector BulletRecoil)
 	BulletOffset = { 0, tempY, tempZ };
 
 	BulletOffset *= BulletRecoil;
+}
+
+void UTP_WeaponComponent::Reload()
+{
+	CanFire = false;
+	//AnimMontage Play
+	//Montage Eneded -> CanFire = true
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(ReloadAnimation, 1.f);
+	}
+}
+
+void UTP_WeaponComponent::ReloadAnimEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("ReloadAnimEnded: End"));
+	auto Name = Montage->GetName();
+	if (!bInterrupted && Name.Equals(ReloadName))
+	{
+		//Fill Bullet
+		if (RemainBullet > 0)
+		{
+			auto Need = ReloadBullet - CurrentBullet;
+
+			if (RemainBullet < Need)
+			{
+				CurrentBullet = RemainBullet;
+				RemainBullet = 0;
+
+				WidgetBullet->SetCurrentBullet(CurrentBullet);
+				WidgetBullet->SetRemainBullet(RemainBullet);
+			}
+			else
+			{
+				RemainBullet -= Need;
+				CurrentBullet = ReloadBullet;
+
+				WidgetBullet->SetCurrentBullet(CurrentBullet);
+				WidgetBullet->SetRemainBullet(RemainBullet);
+			}
+			CanFire = true;
+		}
+	}
 }
