@@ -18,6 +18,19 @@ struct FCharacterStat : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxHp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 CSkillPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 QSkillPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ESkillPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 XSkillPoint;
+
 };
 
 /**

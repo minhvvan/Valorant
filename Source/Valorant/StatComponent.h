@@ -20,7 +20,15 @@ public:
 	int32 GetMaxHp() { return MaxHp; }
 	void SetHp(int32 NewHp);
 
+	void SetCSkillPoint(int32 point) { CSkillPoint = point; };
+	void SetQSkillPoint(int32 point) { QSkillPoint = point; };
+	void SetESkillPoint(int32 point) { ESkillPoint = point; };
+	void SetXSkillPoint(int32 point) { XSkillPoint = point; };
 
+	int32 GetCSkillPoint() { return CSkillPoint; };
+	int32 GetQSkillPoint() { return QSkillPoint; };
+	int32 GetESkillPoint() { return ESkillPoint; };
+	int32 GetXSkillPoint() { return XSkillPoint; };
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -37,4 +45,16 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Stat, Meta = (AllowPrivateAccess = true))
 	int32 Hp;
+
+	UPROPERTY(EditAnywhere, Category = Stat, Meta = (AllowPrivateAccess = true))
+	int32 CSkillPoint;
+
+	UPROPERTY(EditAnywhere, Category = Stat, Meta = (AllowPrivateAccess = true))
+	int32 QSkillPoint;
+
+	UPROPERTY(EditAnywhere, Category = Stat, Meta = (AllowPrivateAccess = true))
+	int32 ESkillPoint;
+
+	UPROPERTY(EditAnywhere, Category = Stat, Meta = (AllowPrivateAccess = true))
+	int32 XSkillPoint;
 };

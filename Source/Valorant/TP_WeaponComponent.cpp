@@ -3,27 +3,22 @@
 
 #include "TP_WeaponComponent.h"
 #include "ValorantCharacter.h"
-#include "ValorantProjectile.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Weapon.h"
-#include "ValorantCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/DecalActor.h"
 #include "Components/DecalComponent.h"
 #include "Math/Vector.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/PlayerController.h"
 #include "DefaultAnimInstance.h"
 #include "BulletWidget.h"
 
-// Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent()
 {
-	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
 
 	static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("/Script/Engine.Material'/Game/Resources/IMG/ShotHole_Mat.ShotHole_Mat'"));
@@ -40,28 +35,36 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 	}
 }
 
+//발사
 void UTP_WeaponComponent::Fire()
 {
+	//Attach된 Character가 없으면 return
 	if (Character == nullptr || Character->GetController() == nullptr || !CanFire)
 	{
 		return;
 	}
 
+	//현재 탄 수 감소
 	CurrentBullet--;
 	if (WidgetBullet)
 	{
+		//관련 위젯 업데이트
 		WidgetBullet->SetCurrentBullet(CurrentBullet);
 	}
 
 	//~~Camera Recoil
 	if (PlayerCamera)
 	{
+		//초탄
 		if (!bFiring)
 		{
+			//조준점이 회복될 위치 저장
 			OriginalCameraRotation = PlayerCamera->GetRelativeRotation();
 			bFiring = true;
 		}
 
+
+		//무작위 반동 생성
 		auto randomRecoil = FMath::RandRange(0.5, 0.8);
 		//~위쪽 반동
 		if (TargetCameraRotation.Pitch < MaxCameraRecoil)
@@ -71,16 +74,19 @@ void UTP_WeaponComponent::Fire()
 		else
 		{
 			//~좌우 반동
+			//방향을 바꾸기까지 남은 탄 수
 			if (RemainNum > 0)
 			{
 				RemainNum--;
 			}
+			//방향 전환
 			else if (RemainNum == 0)
 			{
 				RightTurn = !RightTurn;
 				RemainNum = FMath::RandRange(5, 13);
 			}
 
+			//우측 반동
 			if (RightTurn)
 			{
 				TargetCameraRotation.Yaw += (RecoilStrength * randomRecoil);
@@ -89,6 +95,7 @@ void UTP_WeaponComponent::Fire()
 					TargetCameraRotation.Yaw = MaxRightYaw;
 				}
 			}
+			//좌측 반동
 			else
 			{
 				TargetCameraRotation.Yaw -= (RecoilStrength * randomRecoil);
@@ -98,12 +105,17 @@ void UTP_WeaponComponent::Fire()
 				}
 			}
 		}
+		//반동 적용
 		ApplyCameraRecoil();
 	}
 
 	//~HIt Check & Bullet Recoil
 	{
+		//Hit 판정 세팅
 		FVector CameraLoc = PlayerCamera->GetComponentLocation();
+		//Add Muzzle Offset
+		CameraLoc += MuzzleOffset;
+
 		FVector CameraForward = PlayerCamera->GetForwardVector();
 		FVector StartLoc = CameraLoc;
 		FVector EndLoc = CameraLoc + ((CameraForward + BulletOffset) * Range);
@@ -127,6 +139,7 @@ void UTP_WeaponComponent::Fire()
 
 		FHitResult HitResult;
 
+		//히트 판정
 		bool Result = UKismetSystemLibrary::LineTraceSingleForObjects(
 			GetWorld(),
 			StartLoc,
@@ -157,7 +170,6 @@ void UTP_WeaponComponent::Fire()
 			ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
 			if (decal)
 			{
-				//땅은 잘 나오는데 벽은 회전이 안돼서 이상하게 나옴
 				decal->SetDecalMaterial(ShotHoleMat);
 				decal->SetLifeSpan(2.0f);
 				decal->GetDecal()->DecalSize = FVector(5.0f, 5.0f, 5.0f);
@@ -167,27 +179,28 @@ void UTP_WeaponComponent::Fire()
 				UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
 			}
 
+			//피격된 Actor Damage적용
 			auto victim = HitResult.GetActor();
 			UGameplayStatics::ApplyDamage(victim, 10, Character->GetController(), Character, NULL);
 		}
 	}
 
+	//남은 탄이 없으면 장전
 	if (CurrentBullet == 0)
 	{
 		Reload();
 		return;
 	}
 
-	// Try and play the sound if specified
+	//소리 Play
 	if (FireSound != nullptr)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, Character->GetActorLocation());
 	}
 	
-	// Try and play a firing animation if specified
+	//Anim Play
 	if (FireAnimation != nullptr)
 	{
-		// Get the animation object for the arms mesh
 		if (AnimInstance != nullptr)
 		{
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
@@ -195,6 +208,7 @@ void UTP_WeaponComponent::Fire()
 	}
 }
 
+//Actor에게 무기 소유권 
 void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FString Tag)
 {
 	Character = TargetCharacter;
@@ -203,12 +217,14 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		return;
 	}
 
+	//장전 Anim Callback 설정
 	AnimInstance = Cast<UAnimInstance>(Character->GetMesh1P()->GetAnimInstance());
 	if (AnimInstance)
 	{
 		AnimInstance->OnMontageEnded.AddDynamic(this, &UTP_WeaponComponent::ReloadAnimEnded);
 	}
 
+	//탄 Widget 설정
 	if (MainHUDWidgetClass)
 	{
 		WidgetBullet = Cast<UBulletWidget>(CreateWidget(GetWorld(), MainHUDWidgetClass));
@@ -224,19 +240,21 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 
 	PlayerCamera = Character->GetFirstPersonCameraComponent();
 
+	//Attach
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 
-	//!이미 장착한 무기가 없음
 	AWeapon* Weapon = Cast<AWeapon>(GetOwner());
 	if (auto Current = Character->GetCurrentWeapon())
 	{
 		//현재무기가 칼이면
 		if (Current->WeaponTag == "Knife")
 		{
+			//발사 가능
 			CanFire = true;
 			if (Weapon)
 			{
+				//현재무기로 설정
 				Character->SetCurrentWeapon(Weapon);
 			}
 		}
@@ -256,6 +274,7 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		}
 	}
 
+	//무기 종류에 따라 설정 -> Anim 관련 변수
 	if (Tag == "Primary")
 	{
 		Character->SetHasRifle(true);
@@ -265,14 +284,14 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		Character->SetHasPistol(true); 
 	}
 
+	//input 설정
 	if (Once)
 	{
 		if(APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 		{
 			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 			{
-				// Set the priority of the mapping to 1, so that it overrides the Jump action with the Fire action when using touch input
-				Subsystem->AddMappingContext(FireMappingContext, 1);
+				Subsystem->AddMappingContext(FireMappingContext, 0);
 			}
 
 			if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
@@ -281,6 +300,7 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
 				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &UTP_WeaponComponent::EndFire);
 				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &UTP_WeaponComponent::EndFire);
+				EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Reload);
 			}
 			Once = false;
 		}
@@ -289,6 +309,7 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 
 void UTP_WeaponComponent::DetachWeapon()
 {
+	//발사 불가 & 소유권 해제
 	CanFire = false;
 	Character = nullptr;
 }
@@ -313,6 +334,7 @@ void UTP_WeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Bullet 반동 timeline 설정
 	if (RecoilStrengthCurve)
 	{
 		FOnTimelineVector CurveCallbak;
@@ -327,6 +349,7 @@ void UTP_WeaponComponent::BeginPlay()
 
 void UTP_WeaponComponent::ApplyCameraRecoil()
 {
+	//Camera 반동 적용
 	if (PlayerCamera)
 	{
 		FRotator NewCameraRotation = OriginalCameraRotation + TargetCameraRotation;
@@ -334,8 +357,10 @@ void UTP_WeaponComponent::ApplyCameraRecoil()
 	}
 }
 
+//발사 종료
 void UTP_WeaponComponent::EndFire()
 {
+	//관련 변수 초기화
 	TargetCameraRotation = FRotator::ZeroRotator;
 
 	bFiring = false;
@@ -349,15 +374,15 @@ void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	//발사(연사)중 이라면 timeline 진행
 	if (bFiring)
 	{
 		RecoilOffset.TickTimeline(DeltaTime);
 	}
 
+	//Camera 복구 진행
 	if (PlayerCamera)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(TargetCameraRotation.ToString()));
-
 		if (!PlayerCamera->GetRelativeRotation().IsNearlyZero(0.1))
 		{
 			FRotator SmoothedRotation = FMath::RInterpTo(PlayerCamera->GetRelativeRotation(), FRotator::ZeroRotator, GetWorld()->GetDeltaSeconds(), RecoilRecoveryTime);
@@ -372,6 +397,7 @@ void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void UTP_WeaponComponent::OnBulletRecoilProgress(FVector BulletRecoil)
 {
+	//Bullet 반동값 생성
 	//Z: 상하, Y: 죄우
 	auto tempZ = FMath::RandRange(-.01f, .03f);
 	auto tempY = FMath::RandRange(-.1f, .3f);
@@ -391,9 +417,9 @@ void UTP_WeaponComponent::Reload()
 	}
 }
 
+//재장전 Anim 완료시 장전완료 & 남은 탄 계산
 void UTP_WeaponComponent::ReloadAnimEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("ReloadAnimEnded: End"));
 	auto Name = Montage->GetName();
 	if (!bInterrupted && Name.Equals(ReloadName))
 	{
@@ -402,6 +428,7 @@ void UTP_WeaponComponent::ReloadAnimEnded(UAnimMontage* Montage, bool bInterrupt
 		{
 			auto Need = ReloadBullet - CurrentBullet;
 
+			//남은 탄이 필요한 탄보다 적을 때
 			if (RemainBullet < Need)
 			{
 				CurrentBullet = RemainBullet;
@@ -412,6 +439,7 @@ void UTP_WeaponComponent::ReloadAnimEnded(UAnimMontage* Montage, bool bInterrupt
 			}
 			else
 			{
+				//남은 탄이 필요한 탄보다 많을 때
 				RemainBullet -= Need;
 				CurrentBullet = ReloadBullet;
 

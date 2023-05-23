@@ -14,7 +14,7 @@ UStatComponent::UStatComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
-	Name = "Sage";
+	//Name = "Sage";
 }
 
 void UStatComponent::SetInfo(FString name)
@@ -27,6 +27,10 @@ void UStatComponent::SetInfo(FString name)
 		{
 			SetHp(StatData->MaxHp);
 			MaxHp = StatData->MaxHp;
+			CSkillPoint = StatData->CSkillPoint;
+			QSkillPoint = StatData->QSkillPoint;
+			ESkillPoint = StatData->ESkillPoint;
+			XSkillPoint = StatData->XSkillPoint;
 		}
 	}
 }

@@ -20,6 +20,7 @@
 #include "Knife.h"
 #include "BaseGameState.h"
 #include "StatComponent.h"
+#include "Raze_Grenade.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -64,6 +65,7 @@ void AValorantCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			Subsystem->AddMappingContext(SkillMappingContext, 1);
 		}
 	}
 	FActorSpawnParameters spawnParams;
@@ -105,6 +107,13 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 		
 		//Drop
 		EnhancedInputComponent->BindAction(DropAction, ETriggerEvent::Triggered, this, &AValorantCharacter::DropCurrentWeapon);
+
+		//Skill
+		EnhancedInputComponent->BindAction(CSkillAction, ETriggerEvent::Triggered, this, &AValorantCharacter::SkillC);
+		EnhancedInputComponent->BindAction(QSkillAction, ETriggerEvent::Triggered, this, &AValorantCharacter::SkillQ);
+		EnhancedInputComponent->BindAction(ESkillAction, ETriggerEvent::Triggered, this, &AValorantCharacter::SkillE);
+		EnhancedInputComponent->BindAction(XSkillAction, ETriggerEvent::Triggered, this, &AValorantCharacter::SkillX);
+		EnhancedInputComponent->BindAction(SkillActiveAction, ETriggerEvent::Triggered, this, &AValorantCharacter::ActiveSkill);
 	}
 }
 
@@ -125,32 +134,28 @@ void AValorantCharacter::DetachWeapon(FString Tag)
 			{
 				SetHasPistol(false);
 			}
-
-			if (CurrentWeapon->ActorHasTag(FName(*Tag)))
-			{
-				CurrentWeapon = nullptr;
-			}
+			CurrentWeapon = nullptr;
 
 			Weapon->DetachWeapon();
-
-			//Drop
-			{
-				FHitResult HisResult;
-				FVector Start = GetActorLocation();
-				FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
-				FVector DropPos;
-				if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
-				{
-					DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f) + GetActorForwardVector() * 50;
-				}
-				Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-				Weapon->SetActorLocation(DropPos);
-				Weapon->SetActorRotation(FQuat::Identity);
-				Weapon->EnableInteraction();
-				Weapon->SetActorHiddenInGame(false);
-			}
 		}
 	}
+}
+
+void AValorantCharacter::DropWeapon(class AWeapon* Weapon)
+{
+	FHitResult HisResult;
+	FVector Start = GetActorLocation();
+	FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
+	FVector DropPos;
+	if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
+	{
+		DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f) + GetActorForwardVector() * 50;
+	}
+	Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	Weapon->SetActorLocation(DropPos);
+	Weapon->SetActorRotation(FQuat::Identity);
+	Weapon->EnableInteraction();
+	Weapon->SetActorHiddenInGame(false);
 }
 
 void AValorantCharacter::AddToWeapon(FString Tag, AWeapon* Weapon)
@@ -339,8 +344,10 @@ void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
 	if (CurrentWeapon)
 	{
 		auto Tag = CurrentWeapon->WeaponTag.ToString();
-		RemoveFromWeapon(CurrentWeapon->WeaponTag.ToString());
-		DetachWeapon(CurrentWeapon->WeaponTag.ToString());
+		RemoveFromWeapon(Tag);
+		DetachWeapon(Tag);
+		DropWeapon(CurrentWeapon);
+		
 		if (Tag == "Primary")
 		{
 			//주무기 -> 보조무기
@@ -438,6 +445,73 @@ void AValorantCharacter::CancleInstall(const FInputActionValue& Value)
 void AValorantCharacter::LiftFail()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Lift"));
+}
+
+void AValorantCharacter::SkillC()
+{
+}
+
+void AValorantCharacter::SkillQ()
+{
+}
+
+void AValorantCharacter::SkillE()
+{
+	auto ESP = Stat->ESkillPoint;
+	if (ESP > 0)
+	{
+		Stat->SetESkillPoint(--ESP);
+		if (GrenadeClass)
+		{
+			if (auto World = GetWorld())
+			{
+				if (CurrentWeapon)
+				{
+					CurrentWeapon->SetActorHiddenInGame(true);
+					CurrentWeapon->SetCanFire(false);
+				}
+
+				FRotator rotator;
+				FVector spawnLocation = GetActorLocation();
+				spawnLocation += {100, 100, 100};
+
+				FTransform SpawnTransform(rotator, spawnLocation);
+				Grenade = GetWorld()->SpawnActorDeferred<ARaze_Grenade>(GrenadeClass, SpawnTransform);
+				if (Grenade)
+				{
+					Grenade->SetCharacter(this);
+					Grenade->FinishSpawning(SpawnTransform);
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+					Grenade->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+				}
+			}
+		}
+	}
+}
+
+void AValorantCharacter::SkillX()
+{
+}
+
+void AValorantCharacter::ActiveSkill()
+{
+	if (Grenade)
+	{
+		Grenade->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+		//throw grenade
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		GetActorEyesViewPoint(CameraLocation, CameraRotation);
+		
+		FRotator MuzzleRotation = CameraRotation;
+		MuzzleRotation.Pitch += 10.0f;
+
+		FVector LaunchDirection = MuzzleRotation.Vector();
+		Grenade->Fire(LaunchDirection);
+
+		Grenade = nullptr;
+	}
 }
 
 void AValorantCharacter::SetHasRifle(bool bNewHasRifle)
