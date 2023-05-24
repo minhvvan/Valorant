@@ -19,4 +19,7 @@ public:
 
 	UFUNCTION()
 	virtual void Explosion() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Materials)
+	TArray<UMaterial*> Paints;
 };

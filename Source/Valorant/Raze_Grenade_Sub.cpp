@@ -5,6 +5,8 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Engine/DecalActor.h"
+#include "Components/DecalComponent.h"
 
 ARaze_Grenade_Sub::ARaze_Grenade_Sub()
 {
@@ -28,6 +30,46 @@ ARaze_Grenade_Sub::ARaze_Grenade_Sub()
 	//Mesh->SetupAttachment(RootComponent);
 
 	InitialLifeSpan = 0;
+
+	{
+		static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("/Script/Engine.Material'/Game/Resources/Raze/Grenade/Sub_Boom_Mat.Sub_Boom_Mat'"));
+		if (Material.Object != NULL)
+		{
+			Paints.Add((UMaterial*)Material.Object);
+		}
+	}
+
+	{
+		static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("/Script/Engine.Material'/Game/Resources/Raze/Grenade/Sub_Boom_Mat2.Sub_Boom_Mat2'"));
+		if (Material.Object != NULL)
+		{
+			Paints.Add((UMaterial*)Material.Object);
+		}
+	}
+
+	{
+		static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("/Script/Engine.Material'/Game/Resources/Raze/Grenade/Sub_Boom_Mat3.Sub_Boom_Mat3'"));
+		if (Material.Object != NULL)
+		{
+			Paints.Add((UMaterial*)Material.Object);
+		}
+	}
+
+	{
+		static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("/Script/Engine.Material'/Game/Resources/Raze/Grenade/Sub_Boom_Mat4.Sub_Boom_Mat4'"));
+		if (Material.Object != NULL)
+		{
+			Paints.Add((UMaterial*)Material.Object);
+		}
+	}
+
+	{
+		static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("/Script/Engine.Material'/Game/Resources/Raze/Grenade/Sub_Boom_Mat5.Sub_Boom_Mat5'"));
+		if (Material.Object != NULL)
+		{
+			Paints.Add((UMaterial*)Material.Object);
+		}
+	}
 }
 
 void ARaze_Grenade_Sub::Explosion()
@@ -35,4 +77,36 @@ void ARaze_Grenade_Sub::Explosion()
 	GetWorld()->GetTimerManager().ClearTimer(ExplosionTimerHandle);
 	//Boom
 	CheckHit();
+	
+	//paint decal
+	//paint decal
+	FVector ImpactPoint = GetActorLocation();
+	FVector impactNormal = { 0,0,1 };
+
+	FVector basis = FVector(0, 0, 1);
+	if (fabsf(impactNormal.Y) > 0.8) {
+		basis = FVector(1, 0, 1);
+	}
+	FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
+	FVector forward = FVector::CrossProduct(right, impactNormal);
+	FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
+	FRotator theRotation = bvm.Rotator();
+
+	//Decal
+	ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
+	if (decal)
+	{
+		auto idx = FMath::RandRange(0, 4);
+		auto paint = Paints[idx];
+		decal->SetDecalMaterial(Paints[idx]);
+		decal->SetLifeSpan(2.0f);
+		decal->GetDecal()->DecalSize = FVector(Range, Range, Range);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
+	}
+
+
+	Destroy();
 }

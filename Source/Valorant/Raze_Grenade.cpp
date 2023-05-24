@@ -9,6 +9,8 @@
 #include "ValorantCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Raze_Grenade_Sub.h"
+#include "Engine/DecalActor.h"
+#include "Components/DecalComponent.h"
 
 ARaze_Grenade::ARaze_Grenade()
 {
@@ -17,7 +19,6 @@ ARaze_Grenade::ARaze_Grenade()
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(10.0f);
 	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-	CollisionComp->OnComponentHit.AddDynamic(this, &ARaze_Grenade::OnHit);
 
 	// Players can't walk on it
 	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
@@ -49,12 +50,6 @@ void ARaze_Grenade::Fire(FVector Direction)
 
 	//timer ¼³Á¤
 	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &ARaze_Grenade::Explosion, PendingTime, false);
-}
-
-
-void ARaze_Grenade::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	//UE_LOG(LogTemp, Warning, TEXT("DDDDDDDDDDDDD"));
 }
 
 void ARaze_Grenade::Explosion()
@@ -90,6 +85,34 @@ void ARaze_Grenade::Explosion()
 			SubGrenade->Fire(LaunchDirection);
 		}
 	}
+
+	//paint decal
+	FVector ImpactPoint = spawnLocation;
+	FVector impactNormal = { 0,0,1 };
+
+	FVector basis = FVector(0, 0, 1);
+	if (fabsf(impactNormal.Y) > 0.8) {
+		basis = FVector(1, 0, 1);
+	}
+	FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
+	FVector forward = FVector::CrossProduct(right, impactNormal);
+	FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
+	FRotator theRotation = bvm.Rotator();
+
+	//Decal
+	ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
+	if (decal)
+	{
+		decal->SetDecalMaterial(Paint);
+		decal->SetLifeSpan(4.0f);
+		decal->GetDecal()->DecalSize = FVector(Range, Range, Range);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
+	}
+
+ 	Destroy();
 }
 
 void ARaze_Grenade::CheckHit()
@@ -117,8 +140,9 @@ void ARaze_Grenade::CheckHit()
 		for (auto& OverlapResult : OverlapResults)
 		{
 			AValorantCharacter* Victim = Cast<AValorantCharacter>(OverlapResult.GetActor());
-			if (Victim)
+			if (Victim && !VictimSet.Contains(Victim->GetUniqueID()))
 			{
+				VictimSet.Add(Victim->GetUniqueID());
 				DrawDebugSphere(World, Center, Range, 16, FColor::Blue, false, 1.2f);
 				if (Character)
 				{

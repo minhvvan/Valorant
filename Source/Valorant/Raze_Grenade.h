@@ -29,9 +29,6 @@ public:
 
 	virtual void Fire(FVector Direction) override;
 
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 	virtual void Explosion();
 
 	UPROPERTY(EditAnywhere, Category = "Setting")
@@ -54,8 +51,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	TSubclassOf<class ASkillPawn> SubGrenadeClass;
 
-	//class ARaze_Grenade_Sub* SubGrenade;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Materials)
+	UMaterial* Paint;
+
 
 	TArray<int> dy;
 	TArray<int> dx;
+
+	TSet<int> VictimSet;
 };
