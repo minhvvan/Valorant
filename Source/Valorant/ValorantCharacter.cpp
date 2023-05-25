@@ -21,6 +21,7 @@
 #include "BaseGameState.h"
 #include "StatComponent.h"
 #include "Raze_Grenade.h"
+#include "Raze_Blast.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -453,6 +454,51 @@ void AValorantCharacter::SkillC()
 
 void AValorantCharacter::SkillQ()
 {
+	if (Blast)
+	{
+		Blast->Explosion();
+	}
+	else
+	{
+		auto QSP = Stat->QSkillPoint;
+		if (QSP > 0)
+		{
+			Stat->SetQSkillPoint(--QSP);
+			if (BlastClass)
+			{
+				if (auto World = GetWorld())
+				{
+					if (CurrentWeapon)
+					{
+						CurrentWeapon->SetActorHiddenInGame(true);
+						CurrentWeapon->SetCanFire(false);
+					}
+
+					FRotator rotator;
+					FVector spawnLocation = GetActorLocation();
+					spawnLocation += {1, 1, 1};
+
+					FTransform SpawnTransform(rotator, spawnLocation);
+					Blast = GetWorld()->SpawnActorDeferred<ARaze_Blast>(BlastClass, SpawnTransform);
+					if (Blast)
+					{
+						Blast->SetCharacter(this);
+						Blast->FinishSpawning(SpawnTransform);
+
+						FVector CameraLocation;
+						FRotator CameraRotation;
+						GetActorEyesViewPoint(CameraLocation, CameraRotation);
+
+						FRotator MuzzleRotation = CameraRotation;
+						MuzzleRotation.Pitch += 10.0f;
+
+						FVector LaunchDirection = MuzzleRotation.Vector();
+						Blast->Fire(LaunchDirection);
+					}
+				}
+			}
+		}
+	}
 }
 
 void AValorantCharacter::SkillE()
@@ -495,6 +541,7 @@ void AValorantCharacter::SkillX()
 
 void AValorantCharacter::ActiveSkill()
 {
+	//!스킬에 따라 바꿀 필요있음
 	if (Grenade)
 	{
 		Grenade->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -512,6 +559,8 @@ void AValorantCharacter::ActiveSkill()
 
 		Grenade = nullptr;
 	}
+
+
 }
 
 void AValorantCharacter::SetHasRifle(bool bNewHasRifle)

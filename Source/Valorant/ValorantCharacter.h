@@ -196,6 +196,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	TSubclassOf<class ASkillPawn> GrenadeClass;
 
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	TSubclassOf<class ASkillPawn> BlastClass;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -208,5 +210,6 @@ public:
 
 public:
 	class ARaze_Grenade* Grenade;
+	class ARaze_Blast* Blast;
 };
 
