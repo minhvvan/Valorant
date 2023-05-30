@@ -132,6 +132,7 @@ void ARaze_Blast::CheckHit()
 
 void ARaze_Blast::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
+	//!error  ->  벽 계산이 잘 안됨
 	FVector ImpactPoint = Hit.Location;
 	FVector impactNormal = Hit.Normal;
 

@@ -65,7 +65,7 @@ void AValorantCharacter::BeginPlay()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			Subsystem->AddMappingContext(DefaultMappingContext, 1);
 			Subsystem->AddMappingContext(SkillMappingContext, 1);
 		}
 	}
@@ -171,11 +171,9 @@ void AValorantCharacter::RemoveFromWeapon(FString Tag)
 
 void AValorantCharacter::SetCurrentWeapon(AWeapon* Weapon)
 {
-	CurrentWeapon->SetActorHiddenInGame(true);
-	CurrentWeapon->SetCanFire(false);
-
 	CurrentWeapon = Weapon;
-	Weapon->SetActorHiddenInGame(false);
+	CurrentWeapon->SetCanFire(true);
+	CurrentWeapon->SetActorHiddenInGame(false);
 }
 
 float AValorantCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -242,15 +240,11 @@ void AValorantCharacter::QuickSlotOne(const FInputActionValue& Value)
 		AWeapon* Weapon = *Container;
 		if (CurrentWeapon)
 		{
-			CurrentWeapon->SetCanFire(false);
 			CurrentWeapon->SetActorHiddenInGame(true);
-
-			Weapon->SetCanFire(true);
-			Weapon->SetActorHiddenInGame(false);
+			CurrentWeapon->SetCanFire(false);
 		}
 		if (Spike)
 		{
-			//CurrentWeapon->SetCanFire(false);
 			Spike->SetActorHiddenInGame(true);
 		}
 		if (Knife)
@@ -277,15 +271,9 @@ void AValorantCharacter::QuickSlotTwo(const FInputActionValue& Value)
 			//히든 키기
 			CurrentWeapon->SetCanFire(false);
 			CurrentWeapon->SetActorHiddenInGame(true);
-
-			//1번 무기 Fire가능
-			//1번 무기 보이기
-			Weapon->SetCanFire(true);
-			Weapon->SetActorHiddenInGame(false);
 		}
 		if (Spike)
 		{
-			//CurrentWeapon->SetCanFire(false);
 			Spike->SetActorHiddenInGame(true);
 		}
 		SetCurrentWeapon(Weapon);
@@ -541,7 +529,6 @@ void AValorantCharacter::SkillX()
 
 void AValorantCharacter::ActiveSkill()
 {
-	//!스킬에 따라 바꿀 필요있음
 	if (Grenade)
 	{
 		Grenade->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);

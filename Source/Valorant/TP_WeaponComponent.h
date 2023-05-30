@@ -56,7 +56,7 @@ public:
 	void DetachWeapon();
 
 	//발사 가능 여부 설정
-	void SetCanFire(bool Flag) { CanFire = Flag; };
+	void SetCanFire(bool Flag);
 protected:
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

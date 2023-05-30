@@ -72,8 +72,6 @@ void ARaze_Grenade::Explosion()
 		newLoc.Y += 10 * dy[i];
 		newRot.Yaw += 90 * i;
 
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(newRot.ToString()));
-
 		FTransform SpawnTransform(newRot, newLoc);
 		ARaze_Grenade_Sub* SubGrenade = GetWorld()->SpawnActorDeferred<ARaze_Grenade_Sub>(SubGrenadeClass, SpawnTransform);
 		if (SubGrenade)
@@ -106,10 +104,6 @@ void ARaze_Grenade::Explosion()
 		decal->SetDecalMaterial(Paint);
 		decal->SetLifeSpan(4.0f);
 		decal->GetDecal()->DecalSize = FVector(Range, Range, Range);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
 	}
 
  	Destroy();

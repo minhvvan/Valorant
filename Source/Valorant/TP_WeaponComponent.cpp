@@ -19,7 +19,7 @@
 
 UTP_WeaponComponent::UTP_WeaponComponent()
 {
-	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
+	MuzzleOffset = FVector(0.0f, 0.0f, 0.0f);
 
 	static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("/Script/Engine.Material'/Game/Resources/IMG/ShotHole_Mat.ShotHole_Mat'"));
 
@@ -62,7 +62,6 @@ void UTP_WeaponComponent::Fire()
 			OriginalCameraRotation = PlayerCamera->GetRelativeRotation();
 			bFiring = true;
 		}
-
 
 		//무작위 반동 생성
 		auto randomRecoil = FMath::RandRange(0.5, 0.8);
@@ -251,7 +250,6 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		if (Current->WeaponTag == "Knife")
 		{
 			//발사 가능
-			CanFire = true;
 			if (Weapon)
 			{
 				//현재무기로 설정
@@ -263,15 +261,31 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 			//현재 무기가 바뀐것
 			if (Character->GetCurrentWeapon()->ActorHasTag(FName(*Tag)))
 			{
-				CanFire = true;
+				SetCanFire(true);
 			}
 			else
 			{
 				//현재 무기랑 다른 무기
-				CanFire = false;
+				SetCanFire(false);
 				Weapon->SetActorHiddenInGame(true);
 			}
 		}
+	}
+
+	if (Once)
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
+		{
+			if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
+			{
+				// Fire
+				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
+				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &UTP_WeaponComponent::EndFire);
+				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &UTP_WeaponComponent::EndFire);
+				EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Reload);
+			}
+		}
+		Once = false;
 	}
 
 	//무기 종류에 따라 설정 -> Anim 관련 변수
@@ -283,35 +297,40 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 	{
 		Character->SetHasPistol(true); 
 	}
-
-	//input 설정
-	if (Once)
-	{
-		if(APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
-		{
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-			{
-				Subsystem->AddMappingContext(FireMappingContext, 0);
-			}
-
-			if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
-			{
-				// Fire
-				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
-				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &UTP_WeaponComponent::EndFire);
-				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &UTP_WeaponComponent::EndFire);
-				EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Reload);
-			}
-			Once = false;
-		}
-	}
 }
 
 void UTP_WeaponComponent::DetachWeapon()
 {
 	//발사 불가 & 소유권 해제
-	CanFire = false;
+	SetCanFire(false);
 	Character = nullptr;
+	Once = true;
+}
+
+void UTP_WeaponComponent::SetCanFire(bool Flag)
+{
+	if (!Flag)
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+			{
+				Subsystem->RemoveMappingContext(FireMappingContext);
+			}
+		}
+	}
+	else
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+			{
+				Subsystem->AddMappingContext(FireMappingContext, 2);
+			}
+		}
+	}
+
+	CanFire = Flag;
 }
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
