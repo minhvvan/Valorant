@@ -44,3 +44,11 @@
 - Player가 바라보는 방향으로 총기는 발사되게 구현했다. (현재 Player의 위치에서 Forward Vector를 받아와 LineTrace 적용, 사거리 Update 필요)
 - LineTrace에 Hit된 Actor가 만약 타격가능한 Actor였다면 Damage를 부여하였다.
 - Damage를 받아 체력이 0이 된 Player는 사망하게 구현했다.(Death Animation 적용 필요)
+
+### Recoil
+![recoil](https://github.com/minhvvan/Valorant/assets/59609086/047c011c-03ea-4c6d-80cc-8dbb0c9606bd)
+- 2~5 탄정도는 위쪽으로 반동이 적용되고 최대 높이에 도달하면 좌우로 랜덤하게 반동이 적용되게 구현하였다.
+- Camera Recoil과 실제 탄이 적중되는 Bullet Recoil로 분리하여 구현하였다.
+- Camera의 회전을 변경하는 식으로 Camera Recoil을 구현하였고 Bullet Recoil은 조준점에서 Offset을 더해 적용하였다.
+- Bullet Recoil은 Timeline에 의해 곱해질 값이 정해지며 Timeline은 발사 key를 오래 지속할 경우 증가하는 Curve를 이용하였다.
+- Tick 함수에서는 조준점을 원래 위치로 돌아가게끔 구현하여 반동을 회복하게 하였다.
