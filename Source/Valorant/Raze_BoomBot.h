@@ -20,9 +20,6 @@ public:
 	class USphereComponent* CollisionComp;
 
 	UPROPERTY(VisibleAnywhere)
-	class UProjectileMovementComponent* ProjectileMovement;
-
-	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* Mesh;
 
 	virtual void Fire(FVector Direction) override;
@@ -46,6 +43,7 @@ public:
 	class AValorantCharacter* Character;
 
 	void SetCharacter(class AValorantCharacter* owner) { Character = owner; };
+	AValorantCharacter* GetCharacter() { return Character; };
 
 	void CheckHit();
 
@@ -56,6 +54,10 @@ public:
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+
 protected:
 	virtual void PostInitializeComponents();
+
+	virtual void Tick(float DeltaTime) override;
+
 };

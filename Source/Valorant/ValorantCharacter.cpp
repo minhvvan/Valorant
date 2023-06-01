@@ -22,6 +22,7 @@
 #include "StatComponent.h"
 #include "Raze_Grenade.h"
 #include "Raze_Blast.h"
+#include "Raze_BoomBot.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -438,6 +439,42 @@ void AValorantCharacter::LiftFail()
 
 void AValorantCharacter::SkillC()
 {
+	auto CSP = Stat->CSkillPoint;
+	if (CSP > 0)
+	{
+		Stat->SetESkillPoint(--CSP);
+		if (GrenadeClass)
+		{
+			if (auto World = GetWorld())
+			{
+				if (CurrentWeapon)
+				{
+					CurrentWeapon->SetActorHiddenInGame(true);
+					CurrentWeapon->SetCanFire(false);
+				}
+
+				FRotator rotator = GetActorRotation();
+				FHitResult HisResult;
+				FVector Start = GetActorLocation();
+				FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
+				FVector spawnLocation;
+				if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
+				{
+					spawnLocation = HisResult.Location + GetActorForwardVector() * 100;
+				}
+
+				FTransform SpawnTransform(rotator, spawnLocation);
+				BoomBot = GetWorld()->SpawnActorDeferred<ARaze_BoomBot>(BoomBotClass, SpawnTransform);
+				if (BoomBot)
+				{
+					BoomBot->SetCharacter(this);
+					BoomBot->FinishSpawning(SpawnTransform);
+					//FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+					//BoomBot->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+				}
+			}
+		}
+	}
 }
 
 void AValorantCharacter::SkillQ()
@@ -547,7 +584,20 @@ void AValorantCharacter::ActiveSkill()
 		Grenade = nullptr;
 	}
 
+	if (BoomBot)
+	{
+		//BoomBot->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		GetActorEyesViewPoint(CameraLocation, CameraRotation);
+
+		FRotator MuzzleRotation = CameraRotation;
+		MuzzleRotation.Pitch += 10.0f;
+
+		FVector LaunchDirection = MuzzleRotation.Vector();
+		BoomBot->Fire(LaunchDirection);
+	}
 }
 
 void AValorantCharacter::SetHasRifle(bool bNewHasRifle)
