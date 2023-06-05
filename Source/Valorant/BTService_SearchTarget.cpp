@@ -29,7 +29,7 @@ void UBTService_SearchTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 
 	auto World = CurrentPawn->GetWorld();
 	auto Center = CurrentPawn->GetActorLocation();
-	float SearchRadius = 500.f;
+	float SearchRadius = Range;
 
 	if (World == nullptr)
 	{

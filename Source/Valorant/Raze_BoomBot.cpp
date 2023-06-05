@@ -26,8 +26,6 @@ ARaze_BoomBot::ARaze_BoomBot()
 	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
 	CollisionComp->CanCharacterStepUpOn = ECB_No;
 
-	//CollisionComp->OnComponentHit.AddDynamic(this, &ARaze_BoomBot::OnHit);
-	//CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ARaze_BoomBot::OnBeginOverlap);
 	RootComponent = CollisionComp;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
@@ -54,11 +52,49 @@ void ARaze_BoomBot::Fire(FVector Direction)
 
 void ARaze_BoomBot::Explosion()
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("EXPLOSION"));
+	GetWorld()->GetTimerManager().ClearTimer(ExplosionTimerHandle);
+	//Boom
+	CheckHit();
+	Destroy();
 }
 
 void ARaze_BoomBot::CheckHit()
 {
+	UWorld* World = GetWorld();
+	FVector Center = GetActorLocation();
+
+	if (World == nullptr) return;
+
+	TArray<FOverlapResult> OverlapResults;
+	FCollisionQueryParams QueryParams(NAME_None, false, this);
+
+	bool bResult = World->OverlapMultiByChannel(
+		OverlapResults,
+		Center,
+		FQuat::Identity,
+		ECollisionChannel::ECC_EngineTraceChannel2,
+		FCollisionShape::MakeSphere(Range),
+		QueryParams);
+
+
+	//~같은 Actor가 다중 Hit됨 -> 변경 필요
+	if (bResult)
+	{
+		for (auto& OverlapResult : OverlapResults)
+		{
+			AValorantCharacter* Victim = Cast<AValorantCharacter>(OverlapResult.GetActor());
+			if (Victim && !VictimSet.Contains(Victim->GetUniqueID()))
+			{
+				VictimSet.Add(Victim->GetUniqueID());
+				DrawDebugSphere(World, Center, Range, 16, FColor::Blue, false, 1.2f);
+				if (Character)
+				{
+					UGameplayStatics::ApplyDamage(Victim, Damage, Character->GetController(), Character, NULL);
+				}
+			}
+		}
+	}
 }
 
 void ARaze_BoomBot::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)

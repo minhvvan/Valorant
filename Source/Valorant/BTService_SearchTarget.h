@@ -17,4 +17,7 @@ class VALORANT_API UBTService_SearchTarget : public UBTService
 public:
 	UBTService_SearchTarget();
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+
+	UPROPERTY(EditAnywhere)
+	float Range = 100.f;
 };
