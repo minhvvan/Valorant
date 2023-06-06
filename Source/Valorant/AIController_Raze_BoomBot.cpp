@@ -7,7 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "NavigationSystem.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
-
+#include "Raze_BoomBot.h"
 
 AAIController_Raze_BoomBot::AAIController_Raze_BoomBot()
 {

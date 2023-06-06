@@ -55,9 +55,13 @@ public:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
+	bool GetbRunAI() { return bRunAI; };
 protected:
 	virtual void PostInitializeComponents();
 
 	virtual void Tick(float DeltaTime) override;
 
+
+private:
+	bool bRunAI = false;
 };

@@ -469,8 +469,8 @@ void AValorantCharacter::SkillC()
 				{
 					BoomBot->SetCharacter(this);
 					BoomBot->FinishSpawning(SpawnTransform);
-					//FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-					//BoomBot->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+					BoomBot->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 				}
 			}
 		}
@@ -586,7 +586,7 @@ void AValorantCharacter::ActiveSkill()
 
 	if (BoomBot)
 	{
-		//BoomBot->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		BoomBot->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
 		FVector CameraLocation;
 		FRotator CameraRotation;

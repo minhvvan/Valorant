@@ -13,6 +13,7 @@
 #include "NavigationSystem.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "AIController_Raze_BoomBot.h"
 
 ARaze_BoomBot::ARaze_BoomBot()
 {
@@ -41,10 +42,12 @@ void ARaze_BoomBot::Fire(FVector Direction)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fire"));
 	//AI Possess
-	AAIController* AIController = Cast<AAIController>(GetController());
+
+	auto AIController = GetController<AAIController_Raze_BoomBot>();
 	if (AIController)
 	{
-		AIController->Possess(this);
+		SetActorRotation(Direction.Rotation());
+		AIController->GetBlackboardComponent()->SetValueAsBool(FName(TEXT("bActive")), true);
 	}
 
 	//timer ¼³Á¤
@@ -52,10 +55,32 @@ void ARaze_BoomBot::Fire(FVector Direction)
 
 void ARaze_BoomBot::Explosion()
 {
-	UE_LOG(LogTemp, Warning, TEXT("EXPLOSION"));
 	GetWorld()->GetTimerManager().ClearTimer(ExplosionTimerHandle);
 	//Boom
 	CheckHit();
+
+	//paint decal
+	FVector ImpactPoint = GetActorLocation();
+	FVector impactNormal = { 0,0,1 };
+
+	FVector basis = FVector(0, 0, 1);
+	if (fabsf(impactNormal.Y) > 0.8) {
+		basis = FVector(1, 0, 1);
+	}
+	FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
+	FVector forward = FVector::CrossProduct(right, impactNormal);
+	FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
+	FRotator theRotation = bvm.Rotator();
+
+	//Decal
+	ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
+	if (decal)
+	{
+		decal->SetDecalMaterial(Paint);
+		decal->SetLifeSpan(4.0f);
+		decal->GetDecal()->DecalSize = FVector(Range, Range, Range);
+	}
+
 	Destroy();
 }
 
