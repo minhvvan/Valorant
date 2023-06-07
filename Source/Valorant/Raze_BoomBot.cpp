@@ -51,6 +51,7 @@ void ARaze_BoomBot::Fire(FVector Direction)
 	}
 
 	//timer ¼³Á¤
+	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle,this, &ARaze_BoomBot::Expire, PendingTime, false);
 }
 
 void ARaze_BoomBot::Explosion()
@@ -58,29 +59,7 @@ void ARaze_BoomBot::Explosion()
 	GetWorld()->GetTimerManager().ClearTimer(ExplosionTimerHandle);
 	//Boom
 	CheckHit();
-
-	//paint decal
-	FVector ImpactPoint = GetActorLocation();
-	FVector impactNormal = { 0,0,1 };
-
-	FVector basis = FVector(0, 0, 1);
-	if (fabsf(impactNormal.Y) > 0.8) {
-		basis = FVector(1, 0, 1);
-	}
-	FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
-	FVector forward = FVector::CrossProduct(right, impactNormal);
-	FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
-	FRotator theRotation = bvm.Rotator();
-
-	//Decal
-	ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
-	if (decal)
-	{
-		decal->SetDecalMaterial(Paint);
-		decal->SetLifeSpan(4.0f);
-		decal->GetDecal()->DecalSize = FVector(Range, Range, Range);
-	}
-
+	PaintDecal();
 	Destroy();
 }
 
@@ -130,6 +109,38 @@ void ARaze_BoomBot::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 
 	auto Result = Dir + 2 * hitNormal * FVector::DotProduct(-Dir, hitNormal);
 	SetActorRotation(Result.Rotation());
+}
+
+void ARaze_BoomBot::Expire()
+{
+	GetWorld()->GetTimerManager().ClearTimer(ExplosionTimerHandle);
+	PaintDecal();
+	Destroy();
+}
+
+void ARaze_BoomBot::PaintDecal()
+{
+	//paint decal
+	FVector ImpactPoint = GetActorLocation();
+	FVector impactNormal = { 0,0,1 };
+
+	FVector basis = FVector(0, 0, 1);
+	if (fabsf(impactNormal.Y) > 0.8) {
+		basis = FVector(1, 0, 1);
+	}
+	FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
+	FVector forward = FVector::CrossProduct(right, impactNormal);
+	FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
+	FRotator theRotation = bvm.Rotator();
+
+	//Decal
+	ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
+	if (decal)
+	{
+		decal->SetDecalMaterial(Paint);
+		decal->SetLifeSpan(4.0f);
+		decal->GetDecal()->DecalSize = FVector(Range, Range, Range);
+	}
 }
 
 void ARaze_BoomBot::PostInitializeComponents()

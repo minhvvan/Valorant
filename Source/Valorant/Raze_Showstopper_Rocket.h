@@ -4,23 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "SkillPawn.h"
-#include "Raze_Grenade.generated.h"
+#include "Raze_Showstopper_Rocket.generated.h"
 
-class AValorantCharacter;
 /**
  * 
  */
 UCLASS()
-class VALORANT_API ARaze_Grenade : public ASkillPawn
+class VALORANT_API ARaze_Showstopper_Rocket : public ASkillPawn
 {
 	GENERATED_BODY()
-
+	
 public:
-	ARaze_Grenade();
+	ARaze_Showstopper_Rocket();
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	class USphereComponent* CollisionComp;
-	
+
 	UPROPERTY(VisibleAnywhere)
 	class UProjectileMovementComponent* ProjectileMovement;
 
@@ -30,6 +29,10 @@ public:
 	virtual void Fire(FVector Direction) override;
 
 	virtual void Explosion();
+	void PaintDecal();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Materials)
+	UMaterial* Paint;
 
 	UPROPERTY(EditAnywhere, Category = "Setting")
 	float PendingTime = 3.5f;
@@ -38,7 +41,7 @@ public:
 	float Range = 150.f;
 
 	UPROPERTY(EditAnywhere, Category = "Setting")
-	float Damage = 50.f;
+	float Damage = 150.f;
 
 	FTimerHandle ExplosionTimerHandle;
 
@@ -48,14 +51,11 @@ public:
 
 	void CheckHit();
 
-	UPROPERTY(EditAnywhere, Category = "Skill")
-	TSubclassOf<class ASkillPawn> SubGrenadeClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Materials)
-	UMaterial* Paint;
-
-	TArray<int> dy;
-	TArray<int> dx;
-
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 	TSet<int> VictimSet;
+
+protected:
+	virtual void PostInitializeComponents();
+
 };

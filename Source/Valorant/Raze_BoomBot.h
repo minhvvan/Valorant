@@ -27,7 +27,7 @@ public:
 	virtual void Explosion();
 
 	UPROPERTY(EditAnywhere, Category = "Setting")
-	float PendingTime = 3.5f;
+	float PendingTime = 5.f;
 
 	UPROPERTY(EditAnywhere, Category = "Setting")
 	float Range = 150.f;
@@ -56,6 +56,10 @@ public:
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
 	bool GetbRunAI() { return bRunAI; };
+
+	void Expire();
+
+	void PaintDecal();
 protected:
 	virtual void PostInitializeComponents();
 

@@ -23,6 +23,7 @@
 #include "Raze_Grenade.h"
 #include "Raze_Blast.h"
 #include "Raze_BoomBot.h"
+#include "Raze_Showstopper.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -562,6 +563,36 @@ void AValorantCharacter::SkillE()
 
 void AValorantCharacter::SkillX()
 {
+	auto XSP = Stat->XSkillPoint;
+	if (XSP > 0)
+	{
+		Stat->SetESkillPoint(--XSP);
+		if (ShowStopperClass)
+		{
+			if (auto World = GetWorld())
+			{
+				if (CurrentWeapon)
+				{
+					CurrentWeapon->SetActorHiddenInGame(true);
+					CurrentWeapon->SetCanFire(false);
+				}
+
+				FRotator rotator;
+				FVector spawnLocation = GetActorLocation();
+				spawnLocation += {100, 100, 100};
+
+				FTransform SpawnTransform(rotator, spawnLocation);
+				ShowStopper = GetWorld()->SpawnActorDeferred<ARaze_Showstopper>(ShowStopperClass, SpawnTransform);
+				if (ShowStopper)
+				{
+					ShowStopper->SetCharacter(this);
+					ShowStopper->FinishSpawning(SpawnTransform);
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+					ShowStopper->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+				}
+			}
+		}
+	}
 }
 
 void AValorantCharacter::ActiveSkill()
@@ -597,6 +628,19 @@ void AValorantCharacter::ActiveSkill()
 
 		FVector LaunchDirection = MuzzleRotation.Vector();
 		BoomBot->Fire(LaunchDirection);
+	}
+
+	if (ShowStopper)
+	{
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		GetActorEyesViewPoint(CameraLocation, CameraRotation);
+
+		FRotator MuzzleRotation = CameraRotation;
+		MuzzleRotation.Pitch += 10.0f;
+
+		FVector LaunchDirection = MuzzleRotation.Vector();
+		ShowStopper->Fire(LaunchDirection);
 	}
 }
 

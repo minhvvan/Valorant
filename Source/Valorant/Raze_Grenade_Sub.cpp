@@ -79,7 +79,6 @@ void ARaze_Grenade_Sub::Explosion()
 	CheckHit();
 	
 	//paint decal
-	//paint decal
 	FVector ImpactPoint = GetActorLocation();
 	FVector impactNormal = { 0,0,1 };
 

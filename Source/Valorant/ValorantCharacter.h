@@ -201,6 +201,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	TSubclassOf<class ASkillPawn> BoomBotClass;
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	TSubclassOf<class ASkillPawn> ShowStopperClass;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -215,5 +218,6 @@ public:
 	class ARaze_Grenade* Grenade;
 	class ARaze_Blast* Blast;
 	class ARaze_BoomBot* BoomBot;
+	class ARaze_Showstopper* ShowStopper;
 };
 
