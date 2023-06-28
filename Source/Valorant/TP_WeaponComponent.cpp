@@ -16,6 +16,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DefaultAnimInstance.h"
 #include "BulletWidget.h"
+#include "Gun.h"
+#include "WeaponManager.h"
 
 UTP_WeaponComponent::UTP_WeaponComponent()
 {
@@ -42,14 +44,6 @@ void UTP_WeaponComponent::Fire()
 	if (Character == nullptr || Character->GetController() == nullptr || !CanFire)
 	{
 		return;
-	}
-
-	//현재 탄 수 감소
-	CurrentBullet--;
-	if (WidgetBullet)
-	{
-		//관련 위젯 업데이트
-		WidgetBullet->SetCurrentBullet(CurrentBullet);
 	}
 
 	//~~Camera Recoil
@@ -184,13 +178,6 @@ void UTP_WeaponComponent::Fire()
 		}
 	}
 
-	//남은 탄이 없으면 장전
-	if (CurrentBullet == 0)
-	{
-		Reload();
-		return;
-	}
-
 	//소리 Play
 	if (FireSound != nullptr)
 	{
@@ -205,11 +192,19 @@ void UTP_WeaponComponent::Fire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+
+	//현재 탄 수 감소
+	auto Owner = Cast<AGun>(GetOwner());
+	if (Owner)
+	{
+		Owner->DecreaseCurrentBullet();
+	}
 }
 
 //Actor에게 무기 소유권 
 void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FString Tag)
 {
+
 	Character = TargetCharacter;
 	if (Character == nullptr)
 	{
@@ -223,57 +218,20 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		AnimInstance->OnMontageEnded.AddDynamic(this, &UTP_WeaponComponent::ReloadAnimEnded);
 	}
 
-	//탄 Widget 설정
-	if (MainHUDWidgetClass)
-	{
-		WidgetBullet = Cast<UBulletWidget>(CreateWidget(GetWorld(), MainHUDWidgetClass));
-		if (IsValid(WidgetBullet))
-		{
-			// 위젯을 뷰포트에 띄우는 함수
-			CurrentBullet = ReloadBullet;
-			WidgetBullet->AddToViewport();
-			WidgetBullet->SetCurrentBullet(CurrentBullet);
-			WidgetBullet->SetRemainBullet(RemainBullet);
-		}
-	}
+	//SetBulletWidget();
 
 	PlayerCamera = Character->GetFirstPersonCameraComponent();
 
 	//Attach
-	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+	//FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	//AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 
-	AWeapon* Weapon = Cast<AWeapon>(GetOwner());
-	if (auto Current = Character->GetCurrentWeapon())
-	{
-		//현재무기가 칼이면
-		if (Current->WeaponTag == "Knife")
-		{
-			//발사 가능
-			if (Weapon)
-			{
-				//현재무기로 설정
-				Character->SetCurrentWeapon(Weapon);
-			}
-		}
-		else
-		{
-			//현재 무기가 바뀐것
-			if (Character->GetCurrentWeapon()->ActorHasTag(FName(*Tag)))
-			{
-				SetCanFire(true);
-			}
-			else
-			{
-				//현재 무기랑 다른 무기
-				SetCanFire(false);
-				Weapon->SetActorHiddenInGame(true);
-			}
-		}
-	}
+	//auto Owner = Cast<AWeapon>(GetOwner());
+	//Character->WeaponManager->AddWeapon(Owner);
 
-	if (Once)
+	//if (Once)
 	{
+
 		if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 		{
 			if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
@@ -287,25 +245,20 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		}
 		Once = false;
 	}
-
-	//무기 종류에 따라 설정 -> Anim 관련 변수
-	if (Tag == "Primary")
-	{
-		Character->SetHasRifle(true);
-	}
-	else
-	{
-		Character->SetHasPistol(true); 
-	}
 }
 
-void UTP_WeaponComponent::DetachWeapon()
-{
-	//발사 불가 & 소유권 해제
-	SetCanFire(false);
-	Character = nullptr;
-	Once = true;
-}
+//void UTP_WeaponComponent::DetachWeapon()
+//{
+//	//발사 불가 & 소유권 해제
+//	SetCanFire(false);
+//	Character = nullptr;
+//	Once = true;
+//
+//	//if (WidgetBullet)
+//	//{
+//	//	WidgetBullet->RemoveFromViewport();
+//	//}
+//}
 
 void UTP_WeaponComponent::SetCanFire(bool Flag)
 {
@@ -329,8 +282,35 @@ void UTP_WeaponComponent::SetCanFire(bool Flag)
 			}
 		}
 	}
-
+		
 	CanFire = Flag;
+}
+
+void UTP_WeaponComponent::SetBulletWidget()
+{
+	//탄 Widget 설정
+	if (WidgetBullet)
+	{
+		CurrentBullet = ReloadBullet;
+		WidgetBullet->AddToViewport();
+		WidgetBullet->SetCurrentBullet(CurrentBullet);
+		WidgetBullet->SetRemainBullet(RemainBullet);
+	}
+	else {
+		if (MainHUDWidgetClass)
+		{
+			WidgetBullet = Cast<UBulletWidget>(CreateWidget(GetWorld(), MainHUDWidgetClass));
+			if (IsValid(WidgetBullet))
+			{
+				// 위젯을 뷰포트에 띄우는 함수
+				CurrentBullet = ReloadBullet;
+				WidgetBullet->AddToViewport();
+				WidgetBullet->SetCurrentBullet(CurrentBullet);
+				WidgetBullet->SetRemainBullet(RemainBullet);
+			}
+		}
+	}
+
 }
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -429,7 +409,6 @@ void UTP_WeaponComponent::Reload()
 {
 	CanFire = false;
 	//AnimMontage Play
-	//Montage Eneded -> CanFire = true
 	if (AnimInstance)
 	{
 		AnimInstance->Montage_Play(ReloadAnimation, 1.f);
@@ -442,30 +421,10 @@ void UTP_WeaponComponent::ReloadAnimEnded(UAnimMontage* Montage, bool bInterrupt
 	auto Name = Montage->GetName();
 	if (!bInterrupted && Name.Equals(ReloadName))
 	{
-		//Fill Bullet
-		if (RemainBullet > 0)
+		auto Owner = Cast<AGun>(GetOwner());
+		if (Owner)
 		{
-			auto Need = ReloadBullet - CurrentBullet;
-
-			//남은 탄이 필요한 탄보다 적을 때
-			if (RemainBullet < Need)
-			{
-				CurrentBullet = RemainBullet;
-				RemainBullet = 0;
-
-				WidgetBullet->SetCurrentBullet(CurrentBullet);
-				WidgetBullet->SetRemainBullet(RemainBullet);
-			}
-			else
-			{
-				//남은 탄이 필요한 탄보다 많을 때
-				RemainBullet -= Need;
-				CurrentBullet = ReloadBullet;
-
-				WidgetBullet->SetCurrentBullet(CurrentBullet);
-				WidgetBullet->SetRemainBullet(RemainBullet);
-			}
-			CanFire = true;
+			Owner->Reload();
 		}
 	}
 }

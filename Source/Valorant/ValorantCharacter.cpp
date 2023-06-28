@@ -24,6 +24,7 @@
 #include "Raze_Blast.h"
 #include "Raze_BoomBot.h"
 #include "Raze_Showstopper.h"
+#include "WeaponManager.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -53,16 +54,15 @@ AValorantCharacter::AValorantCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	Stat = CreateDefaultSubobject<UStatComponent>(TEXT("STAT"));
+	WeaponManager = CreateDefaultSubobject<UWeaponManager>(TEXT("WEAPONS"));
 
 	bCanUnInstall = false;
 }
 
 void AValorantCharacter::BeginPlay()
 {
-	// Call the base class  
 	Super::BeginPlay();
 
-	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -71,15 +71,7 @@ void AValorantCharacter::BeginPlay()
 			Subsystem->AddMappingContext(SkillMappingContext, 1);
 		}
 	}
-	FActorSpawnParameters spawnParams;
-	FRotator rotator;
-	FVector spawnLocation = FVector::ZeroVector;
-	Knife = GetWorld()->SpawnActor<AKnife>(AKnife::StaticClass(), spawnLocation, rotator, spawnParams);
 
-	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	Knife->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("KnifePoint")));
-
-	CurrentWeapon = Knife;
 	auto HP = Stat->GetHp();
 }
 
@@ -120,62 +112,65 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	}
 }
 
-void AValorantCharacter::DetachWeapon(FString Tag)
-{
-	TArray<AActor*> AttachedActors;
-	GetAttachedActors(AttachedActors);
-	for (auto* Attached : AttachedActors)
-	{
-		auto Weapon = Cast<AWeapon>(Attached);
-		if (Weapon->ActorHasTag(FName(*Tag)))
-		{
-			if (Tag == "Primary")
-			{
-				SetHasRifle(false);
-			}
-			else 
-			{
-				SetHasPistol(false);
-			}
-			CurrentWeapon = nullptr;
+//void AValorantCharacter::DetachWeapon(FString Tag)
+//{
+//	TArray<AActor*> AttachedActors;
+//	GetAttachedActors(AttachedActors);
+//	for (auto* Attached : AttachedActors)
+//	{
+//		auto Weapon = Cast<AWeapon>(Attached);
+//		if (Weapon->ActorHasTag(FName(*Tag)))
+//		{
+//			if (Tag == "Primary")
+//			{
+//				SetHasRifle(false);
+//			}
+//			else 
+//			{
+//				SetHasPistol(false);
+//			}
+//
+//			Weapon->DetachWeapon();
+//		}
+//	}
+//}
 
-			Weapon->DetachWeapon();
-		}
-	}
-}
-
-void AValorantCharacter::DropWeapon(class AWeapon* Weapon)
-{
-	FHitResult HisResult;
-	FVector Start = GetActorLocation();
-	FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
-	FVector DropPos;
-	if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
-	{
-		DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f) + GetActorForwardVector() * 50;
-	}
-	Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	Weapon->SetActorLocation(DropPos);
-	Weapon->SetActorRotation(FQuat::Identity);
-	Weapon->EnableInteraction();
-	Weapon->SetActorHiddenInGame(false);
-}
-
-void AValorantCharacter::AddToWeapon(FString Tag, AWeapon* Weapon)
-{
-	Weapons.Add(Tag, Weapon);
-}
-
-void AValorantCharacter::RemoveFromWeapon(FString Tag)
-{
-	Weapons.FindAndRemoveChecked(Tag);
-}
+//void AValorantCharacter::DropWeapon(AWeapon* Weapon)
+//{
+//	FHitResult HisResult;
+//	FVector Start = GetActorLocation();
+//	FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
+//	FVector DropPos;
+//	if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
+//	{
+//		DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f) + GetActorForwardVector() * 50;
+//	}
+//
+//	if (Weapon)
+//	{
+//		Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+//		Weapon->SetActorLocation(DropPos);
+//		Weapon->SetActorRotation(FQuat::Identity);
+//		Weapon->EnableInteraction();
+//		Weapon->SetActorHiddenInGame(false);
+//	}
+//}
+//
+//void AValorantCharacter::AddToWeapon(FString Tag, AWeapon* Weapon)
+//{
+//	Weapons.Add(Tag, Weapon);
+//}
+//
+//void AValorantCharacter::RemoveFromWeapon(FString Tag)
+//{
+//	Weapons.FindAndRemoveChecked(Tag);
+//}
 
 void AValorantCharacter::SetCurrentWeapon(AWeapon* Weapon)
 {
 	CurrentWeapon = Weapon;
-	CurrentWeapon->SetCanFire(true);
 	CurrentWeapon->SetActorHiddenInGame(false);
+	CurrentWeapon->SetCanFire(true);
 }
 
 float AValorantCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -198,11 +193,12 @@ void AValorantCharacter::Death()
 	
 	//들고있던 무기 떨구기
 	//칼은 안떨굼
-	if (CurrentWeapon)
+	if (WeaponManager)
 	{
-		if (!CurrentWeapon->ActorHasTag("Knife"))
+		if (CurrentWeapon && !CurrentWeapon->ActorHasTag("Knife"))
 		{
-			DetachWeapon((CurrentWeapon->WeaponTag).ToString());
+			WeaponManager->RemoveWeapon(CurrentWeapon);
+			//DetachWeapon((CurrentWeapon->WeaponTag).ToString());
 		}
 	}
 	Destroy();
@@ -236,7 +232,17 @@ void AValorantCharacter::Look(const FInputActionValue& Value)
 
 void AValorantCharacter::QuickSlotOne(const FInputActionValue& Value)
 {
-	AWeapon** Container = Weapons.Find("Primary");
+	if (CurrentWeapon->WeaponTag.IsEqual("Primary"))
+	{
+		return;
+	}
+
+	if (WeaponManager)
+	{
+		WeaponManager->SwapWeapon("Primary");
+	}
+
+	/*AWeapon** Container = Weapons.Find("Primary");
 	if (Container)
 	{
 		AWeapon* Weapon = *Container;
@@ -258,49 +264,33 @@ void AValorantCharacter::QuickSlotOne(const FInputActionValue& Value)
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Pimary None"));
-	}
+	}*/
 }
 
 void AValorantCharacter::QuickSlotTwo(const FInputActionValue& Value)
 {
-	AWeapon** Container = Weapons.Find("Secondary");
-	if (Container)
+	if (CurrentWeapon->WeaponTag.IsEqual("Secondary"))
 	{
-		AWeapon* Weapon = *Container;
-		if (CurrentWeapon)
-		{
-			//현재 무기 fire 끄기
-			//히든 키기
-			CurrentWeapon->SetCanFire(false);
-			CurrentWeapon->SetActorHiddenInGame(true);
-		}
-		if (Spike)
-		{
-			Spike->SetActorHiddenInGame(true);
-		}
-		SetCurrentWeapon(Weapon);
+		return;
 	}
-	else 
+
+	if (WeaponManager)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Secondary None"));
+		WeaponManager->SwapWeapon("Secondary");
 	}
 }
 
 void AValorantCharacter::QuickSlotThree(const FInputActionValue& Value)
 {
-	if (CurrentWeapon)
+	if (CurrentWeapon->WeaponTag.IsEqual("Knife"))
 	{
-		CurrentWeapon->SetActorHiddenInGame(true);
-		CurrentWeapon->SetCanFire(false);
+		return;
 	}
-	if (Spike)
+
+	if (WeaponManager)
 	{
-		//CurrentWeapon->SetCanFire(false);
-		Spike->SetActorHiddenInGame(true);
+		WeaponManager->SwapWeapon("Knife");
 	}
-	SetCurrentWeapon(Knife);
-	Knife->SetCanAttack(true);
-	Knife->SetActorHiddenInGame(false);
 }
 
 void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
@@ -332,45 +322,47 @@ void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
 
 void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
 {
-	if (CurrentWeapon)
+	if (WeaponManager)
 	{
-		auto Tag = CurrentWeapon->WeaponTag.ToString();
-		RemoveFromWeapon(Tag);
-		DetachWeapon(Tag);
-		DropWeapon(CurrentWeapon);
+		WeaponManager->RemoveWeapon(CurrentWeapon);
+
+		//auto Tag = CurrentWeapon->WeaponTag.ToString();
+		//RemoveFromWeapon(Tag);
+		//DetachWeapon(Tag);
+		//DropWeapon(CurrentWeapon);
 		
-		if (Tag == "Primary")
-		{
-			//주무기 -> 보조무기
-			//보조무기 있는지 check
-			if (AWeapon** ptr =  Weapons.Find("Secondary"))
-			{
-				auto temp = *(ptr);
-				SetCurrentWeapon(temp);
-				temp->SetActorHiddenInGame(false);
-				temp->SetCanFire(true);
-			}
-			else 
-			{
-				CurrentWeapon = nullptr;
-			}
-		}
-		else
-		{
-			//보조무기 -> 주무기
-			//주무기있나 체크
-			if (auto ptr = Weapons.Find("Primary"))
-			{
-				auto temp = *(ptr);
-				SetCurrentWeapon(temp);
-				temp->SetActorHiddenInGame(false);
-				temp->SetCanFire(true);
-			}
-			else
-			{
-				CurrentWeapon = nullptr;
-			}
-		}
+		//if (Tag == "Primary")
+		//{
+		//	//주무기 -> 보조무기
+		//	//보조무기 있는지 check
+		//	if (AWeapon** ptr =  Weapons.Find("Secondary"))
+		//	{
+		//		auto temp = *(ptr);
+		//		SetCurrentWeapon(temp);
+		//		temp->SetActorHiddenInGame(false);
+		//		temp->SetCanFire(true);
+		//	}
+		//	else 
+		//	{
+		//		CurrentWeapon = Knife;
+		//	}
+		//}
+		//else
+		//{
+		//	//보조무기 -> 주무기
+		//	//주무기있나 체크
+		//	if (auto ptr = Weapons.Find("Primary"))
+		//	{
+		//		auto temp = *(ptr);
+		//		SetCurrentWeapon(temp);
+		//		temp->SetActorHiddenInGame(false);
+		//		temp->SetCanFire(true);
+		//	}
+		//	else
+		//	{
+		//		CurrentWeapon = Knife;
+		//	}
+		//}
 	}
 }
 

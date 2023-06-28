@@ -38,6 +38,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintreadOnly)
 	AValorantCharacter* OverlappedCharacter;
 
+	UPROPERTY(VisibleAnywhere)
+	class UBulletComponent* BulletComp;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -51,9 +54,15 @@ public:
 	virtual void PickUp(AValorantCharacter* Character) override;
 	virtual void Interact(AValorantCharacter* Character) override;
 	virtual void EndInteract() override;
-	virtual  void DetachWeapon() override;
+	//virtual  void DetachWeapon() override;
 	virtual void EnableInteraction() override;
 	virtual void SetCanFire(bool Flag) override;
+
+	UFUNCTION()
+	void Reload();
+	
+	UFUNCTION()
+	void DecreaseCurrentBullet();
 
 	void Drop();
 

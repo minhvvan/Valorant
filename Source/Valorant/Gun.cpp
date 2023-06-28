@@ -8,6 +8,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "BulletComponent.h"
+#include "WeaponManager.h"
 
 AGun::AGun()
 {
@@ -30,6 +32,8 @@ AGun::AGun()
 
 	bCanInteraction = false;
 	WeaponTag = FName("Primary");
+
+	BulletComp = CreateDefaultSubobject<UBulletComponent>(TEXT("BULLET"));
 }
 
 void AGun::BeginPlay()
@@ -54,17 +58,19 @@ void AGun::Tick(float DeltaTime)
 
 	if (bCanInteraction)
 	{
+		//hard
 		auto Controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		if (Controller->WasInputKeyJustPressed(EKeys::E))
+		if (Controller->WasInputKeyJustPressed(EKeys::F))
 		{
 			//detach weapon
-			if (OverlappedCharacter)
+			if (OverlappedCharacter->WeaponManager)
 			{
-				OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
-				OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
-				OverlappedCharacter->AddToWeapon(WeaponTag.ToString(), this);
-				WeaponComp->AttachWeapon(OverlappedCharacter, WeaponTag.ToString());
-				UE_LOG(LogTemp, Warning, TEXT("Swap"));
+				OverlappedCharacter->WeaponManager->ChangeWeapon(this);
+				//OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
+				//OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
+				//OverlappedCharacter->AddToWeapon(WeaponTag.ToString(), this);
+				//WeaponComp->AttachWeapon(OverlappedCharacter, WeaponTag.ToString());
+				//UE_LOG(LogTemp, Warning, TEXT("Swap"));
 			}
 		}
 	}
@@ -72,35 +78,54 @@ void AGun::Tick(float DeltaTime)
 
 void AGun::PickUp(AValorantCharacter* Character)
 {
-	if (ActorHasTag(WeaponTag))
+	if (Character->WeaponManager)
 	{
-		if (WeaponTag == "Primary")
+		if (Character->WeaponManager->AddWeapon(this))
 		{
-			if (Character->GetHasRifle())
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Already Exist: Primary"));
-			}
-			else
-			{
-				Character->AddToWeapon(WeaponTag.ToString(), this);
-				WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
-				InteractComp->SetGenerateOverlapEvents(false);
-			}
-		}
-		else if (WeaponTag == "Secondary")
-		{
-			if (Character->GetHasPistol())
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Already Exist: Secondary"));
-			}
-			else
-			{
-				Character->AddToWeapon(WeaponTag.ToString(), this);
-				WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
-				InteractComp->SetGenerateOverlapEvents(false);
-			}
+			Character->SetCurrentWeapon(this);
 		}
 	}
+	//if (ActorHasTag(WeaponTag))
+	//{
+	//	if (WeaponTag == "Primary")
+	//	{
+	//		if (Character->GetHasRifle())
+	//		{
+	//			UE_LOG(LogTemp, Warning, TEXT("Already Exist: Primary"));
+	//			return;
+	//		}
+	//		else
+	//		{
+	//			if (WeaponComp)
+	//			{
+	//				WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
+	//				InteractComp->SetGenerateOverlapEvents(false);
+	//			}
+	//			//Character->AddToWeapon(WeaponTag.ToString(), this);
+	//			//WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
+	//			//InteractComp->SetGenerateOverlapEvents(false);
+	//		}
+	//	}
+	//	else if (WeaponTag == "Secondary")
+	//	{
+	//		if (Character->GetHasPistol())
+	//		{
+	//			UE_LOG(LogTemp, Warning, TEXT("Already Exist: Secondary"));
+	//			return;
+	//		}
+	//		else
+	//		{
+	//			if (WeaponComp)
+	//			{
+	//				WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
+	//				InteractComp->SetGenerateOverlapEvents(false);
+	//			}
+	//			//Character->AddToWeapon(WeaponTag.ToString(), this);
+	//			//WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
+	//			//InteractComp->SetGenerateOverlapEvents(false);
+	//		}
+	//	}
+	//}
 }
 
 void AGun::Interact(AValorantCharacter* Character)
@@ -115,18 +140,19 @@ void AGun::Interact(AValorantCharacter* Character)
 
 void AGun::EndInteract()
 {
+
 	OverlappedCharacter = nullptr;
 	bCanInteraction = false;
 	InteractUI->SetVisibility(false);
 }
 
-void AGun::DetachWeapon()
-{
-	if (WeaponComp)
-	{
-		WeaponComp->DetachWeapon();
-	}
-}
+//void AGun::DetachWeapon()
+//{
+//	if (WeaponComp)
+//	{
+//		WeaponComp->DetachWeapon();
+//	}
+//}
 
 void AGun::EnableInteraction()
 {
@@ -146,8 +172,33 @@ void AGun::Drop()
 	//detach weapon
 	if (OverlappedCharacter)
 	{
-		OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
-		OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
+		OverlappedCharacter->WeaponManager->RemoveWeapon(this);
+		//OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
+		//OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
 	}
 }
 
+void AGun::Reload()
+{
+	if (BulletComp->Reload())
+	{
+		SetCanFire(true);
+	}
+	else 
+	{
+		SetCanFire(false);
+	}
+	//widget 설정해야함 -> manager에서 할거임
+
+}
+
+void AGun::DecreaseCurrentBullet()
+{
+	BulletComp->SetCurrentBullet(BulletComp->GetCurrentBullet() - 1);
+
+	//남은 탄이 없으면 장전
+	if (BulletComp->GetCurrentBullet() == 0)
+	{
+		WeaponComp->Reload();
+	}
+}

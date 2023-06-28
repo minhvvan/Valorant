@@ -92,6 +92,9 @@ protected:
 	class UStatComponent* Stat;
 
 public:
+	UPROPERTY(VisibleAnywhere)
+	class UWeaponManager* WeaponManager;
+	
 	AValorantCharacter();
 
 	UPROPERTY(BlueprintAssignable)
@@ -138,15 +141,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	bool GetHasPistol();	
 	
-	void DetachWeapon(FString Tag);
+	//void DetachWeapon(FString Tag);
 
-	void DropWeapon(class AWeapon* Weapon);
+	//void DropWeapon(class AWeapon* Weapon);
 
-	UFUNCTION()
-	void AddToWeapon(FString Tag, class AWeapon* Weapon);
+	//UFUNCTION()
+	//void AddToWeapon(FString Tag, class AWeapon* Weapon);
 
-	UFUNCTION()
-	void RemoveFromWeapon(FString Tag);
+	//UFUNCTION()
+	//void RemoveFromWeapon(FString Tag);
 
 	UFUNCTION()
 	TMap<FString, class AWeapon*> GetWeapons() { return Weapons; };

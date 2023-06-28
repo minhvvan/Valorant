@@ -30,9 +30,23 @@ struct FCharacterStat : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 XSkillPoint;
-
 };
 
+USTRUCT()
+struct FBullet : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 CurrentBullet;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	int32 RemainBullet;
+
+	//하나의 탄창에 들어가는 탄 수
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	int32 ReloadBullet;
+};
 /**
  * 
  */
@@ -47,8 +61,12 @@ public:
 	virtual void Init() override;
 
 	FCharacterStat* GetStatData(FString name);
+	FBullet* GetBulletData(FString name);
 
 private:
 	UPROPERTY()
 	class UDataTable* MyStats;
+
+	UPROPERTY()
+	class UDataTable* BulletDT;
 };

@@ -52,11 +52,13 @@ public:
 	void Fire();	
 
 	//Weapon 소유권 해제
-	UFUNCTION()
-	void DetachWeapon();
+	////UFUNCTION()
+	////void DetachWeapon();
 
 	//발사 가능 여부 설정
 	void SetCanFire(bool Flag);
+
+	void SetBulletWidget();
 protected:
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -66,6 +68,7 @@ protected:
 
 private:
 	//무기 소유 Character
+	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	AValorantCharacter* Character;
 
 	//최초 Attach시 Input 설정을 위한 변수
@@ -142,6 +145,7 @@ public:
 	int32 ReloadBullet;
 
 	//장전
+	UFUNCTION()
 	void Reload();
 
 	//탄 Widget

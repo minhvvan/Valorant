@@ -44,8 +44,6 @@ void UStatComponent::SetHp(int32 NewHp)
 		auto Player = Cast<AValorantCharacter>(GetOwner());
 		Player->Death();
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("HP: %d"), Hp);
 }
 
 

@@ -17,6 +17,9 @@ public:
 	// Sets default values for this actor's properties
 	AKnife();
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
+	class USphereComponent* CollisionComp;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* Mesh;
 
