@@ -30,11 +30,11 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 		ShotHoleMat = (UMaterial*)Material.Object;
 	}
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Widget/WBP_Bullet.WBP_Bullet_C'"));
-	if (UW.Succeeded())
-	{
-		MainHUDWidgetClass = UW.Class;
-	}
+	//static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Widget/WBP_Bullet.WBP_Bullet_C'"));
+	//if (UW.Succeeded())
+	//{
+	//	MainHUDWidgetClass = UW.Class;
+	//}
 }
 
 //¹ß»ç
@@ -286,32 +286,31 @@ void UTP_WeaponComponent::SetCanFire(bool Flag)
 	CanFire = Flag;
 }
 
-void UTP_WeaponComponent::SetBulletWidget()
-{
-	//Åº Widget ¼³Á¤
-	if (WidgetBullet)
-	{
-		CurrentBullet = ReloadBullet;
-		WidgetBullet->AddToViewport();
-		WidgetBullet->SetCurrentBullet(CurrentBullet);
-		WidgetBullet->SetRemainBullet(RemainBullet);
-	}
-	else {
-		if (MainHUDWidgetClass)
-		{
-			WidgetBullet = Cast<UBulletWidget>(CreateWidget(GetWorld(), MainHUDWidgetClass));
-			if (IsValid(WidgetBullet))
-			{
-				// À§Á¬À» ºäÆ÷Æ®¿¡ ¶ç¿ì´Â ÇÔ¼ö
-				CurrentBullet = ReloadBullet;
-				WidgetBullet->AddToViewport();
-				WidgetBullet->SetCurrentBullet(CurrentBullet);
-				WidgetBullet->SetRemainBullet(RemainBullet);
-			}
-		}
-	}
-
-}
+//void UTP_WeaponComponent::SetBulletWidget()
+//{
+//	//Åº Widget ¼³Á¤
+//	if (WidgetBullet)
+//	{
+//		CurrentBullet = ReloadBullet;
+//		WidgetBullet->AddToViewport();
+//		WidgetBullet->SetCurrentBullet(CurrentBullet);
+//		WidgetBullet->SetRemainBullet(RemainBullet);
+//	}
+//	else {
+//		if (MainHUDWidgetClass)
+//		{
+//			WidgetBullet = Cast<UBulletWidget>(CreateWidget(GetWorld(), MainHUDWidgetClass));
+//			if (IsValid(WidgetBullet))
+//			{
+//				// À§Á¬À» ºäÆ÷Æ®¿¡ ¶ç¿ì´Â ÇÔ¼ö
+//				CurrentBullet = ReloadBullet;
+//				WidgetBullet->AddToViewport();
+//				WidgetBullet->SetCurrentBullet(CurrentBullet);
+//				WidgetBullet->SetRemainBullet(RemainBullet);
+//			}
+//		}
+//	}
+//}
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

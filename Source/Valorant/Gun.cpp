@@ -66,11 +66,6 @@ void AGun::Tick(float DeltaTime)
 			if (OverlappedCharacter->WeaponManager)
 			{
 				OverlappedCharacter->WeaponManager->ChangeWeapon(this);
-				//OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
-				//OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
-				//OverlappedCharacter->AddToWeapon(WeaponTag.ToString(), this);
-				//WeaponComp->AttachWeapon(OverlappedCharacter, WeaponTag.ToString());
-				//UE_LOG(LogTemp, Warning, TEXT("Swap"));
 			}
 		}
 	}
@@ -80,52 +75,8 @@ void AGun::PickUp(AValorantCharacter* Character)
 {
 	if (Character->WeaponManager)
 	{
-		if (Character->WeaponManager->AddWeapon(this))
-		{
-			Character->SetCurrentWeapon(this);
-		}
+		Character->WeaponManager->AddWeapon(this);
 	}
-	//if (ActorHasTag(WeaponTag))
-	//{
-	//	if (WeaponTag == "Primary")
-	//	{
-	//		if (Character->GetHasRifle())
-	//		{
-	//			UE_LOG(LogTemp, Warning, TEXT("Already Exist: Primary"));
-	//			return;
-	//		}
-	//		else
-	//		{
-	//			if (WeaponComp)
-	//			{
-	//				WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
-	//				InteractComp->SetGenerateOverlapEvents(false);
-	//			}
-	//			//Character->AddToWeapon(WeaponTag.ToString(), this);
-	//			//WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
-	//			//InteractComp->SetGenerateOverlapEvents(false);
-	//		}
-	//	}
-	//	else if (WeaponTag == "Secondary")
-	//	{
-	//		if (Character->GetHasPistol())
-	//		{
-	//			UE_LOG(LogTemp, Warning, TEXT("Already Exist: Secondary"));
-	//			return;
-	//		}
-	//		else
-	//		{
-	//			if (WeaponComp)
-	//			{
-	//				WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
-	//				InteractComp->SetGenerateOverlapEvents(false);
-	//			}
-	//			//Character->AddToWeapon(WeaponTag.ToString(), this);
-	//			//WeaponComp->AttachWeapon(Character, WeaponTag.ToString());
-	//			//InteractComp->SetGenerateOverlapEvents(false);
-	//		}
-	//	}
-	//}
 }
 
 void AGun::Interact(AValorantCharacter* Character)
@@ -173,9 +124,37 @@ void AGun::Drop()
 	if (OverlappedCharacter)
 	{
 		OverlappedCharacter->WeaponManager->RemoveWeapon(this);
-		//OverlappedCharacter->RemoveFromWeapon(WeaponTag.ToString());
-		//OverlappedCharacter->DetachWeapon(WeaponTag.ToString());
 	}
+}
+
+int AGun::GetCurrentBullet()
+{
+	if (WeaponComp)
+	{
+		return WeaponComp->CurrentBullet;
+	}
+
+	return 0;
+}
+
+int AGun::GetRemainBullet()
+{
+	if (WeaponComp)
+	{
+		return WeaponComp->RemainBullet;
+	}
+
+	return 0;
+}
+
+int AGun::GetReloadBullet()
+{
+	if (WeaponComp)
+	{
+		return WeaponComp->ReloadBullet;
+	}
+
+	return 0;
 }
 
 void AGun::Reload()

@@ -8,6 +8,7 @@
 #include "TP_WeaponComponent.h"
 #include "TP_InteractionComponent.h"
 #include "Gun.h"
+#include "BulletWidget.h"
 
 // Sets default values for this component's properties
 UWeaponManager::UWeaponManager()
@@ -16,6 +17,11 @@ UWeaponManager::UWeaponManager()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Widget/WBP_Bullet.WBP_Bullet_C'"));
+	if (UW.Succeeded())
+	{
+		MainHUDWidgetClass = UW.Class;
+	}
 	// ...
 }
 
@@ -54,7 +60,6 @@ void UWeaponManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 }
 
 //Weapon을 받아 map에 저장
-// character current 세팅
 bool UWeaponManager::AddWeapon(AWeapon* Weapon)
 {
 	auto Tag = Weapon->WeaponTag.ToString();
@@ -68,7 +73,7 @@ bool UWeaponManager::AddWeapon(AWeapon* Weapon)
 	Weapons.Add(Tag, Weapon);
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	Weapon->AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-	Weapon->SetActorHiddenInGame(false);
+	Weapon->SetActorHiddenInGame(true);
 
 	auto Gun = Cast<AGun>(Weapon);
 	if (Gun && Gun->WeaponComp)
@@ -190,16 +195,7 @@ void UWeaponManager::ChangeWeapon(AWeapon* Weapon)
 
 		//발사 불가 & 소유권 해제
 		DropWeapon->SetCanFire(false);
-
-		if (auto Current = Character->GetCurrentWeapon())
-		{
-			if (Tag.Equals(Current->WeaponTag.ToString()))
-			{
-				//현재 들고 있는 무기 변경
-				AddWeapon(Weapon);
-				Character->SetCurrentWeapon(Weapon);
-			}
-		}
+		AddWeapon(Weapon);
 	}
 }
 
@@ -217,10 +213,45 @@ void UWeaponManager::SwapWeapon(FString Tag)
 			Character->GetCurrentWeapon()->SetCanFire(false);
 
 			Character->SetCurrentWeapon(weapon);
+			SetBulletWidget(Tag);
 		}
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Weapon None"));
+		}
+	}
+}
+
+void UWeaponManager::SetBulletWidget(FString Tag)
+{
+	auto Weapon = Cast<AGun>(*Weapons.Find(Tag));
+	if (Weapon)
+	{
+		auto CurrentBullet = Weapon->GetCurrentBullet();
+		auto ReloadBullet = Weapon->GetReloadBullet();
+		auto RemainBullet = Weapon->GetRemainBullet();
+
+		//탄 Widget 설정
+		if (WidgetBullet)
+		{
+			CurrentBullet = ReloadBullet;
+			//WidgetBullet->AddToViewport();
+			WidgetBullet->SetCurrentBullet(CurrentBullet);
+			WidgetBullet->SetRemainBullet(RemainBullet);
+		}
+		else {
+			if (MainHUDWidgetClass)
+			{
+				WidgetBullet = Cast<UBulletWidget>(CreateWidget(GetWorld(), MainHUDWidgetClass));
+				if (IsValid(WidgetBullet))
+				{
+					// 위젯을 뷰포트에 띄우는 함수
+					CurrentBullet = ReloadBullet;
+					WidgetBullet->AddToViewport();
+					WidgetBullet->SetCurrentBullet(CurrentBullet);
+					WidgetBullet->SetRemainBullet(RemainBullet);
+				}
+			}
 		}
 	}
 }

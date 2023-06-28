@@ -241,30 +241,6 @@ void AValorantCharacter::QuickSlotOne(const FInputActionValue& Value)
 	{
 		WeaponManager->SwapWeapon("Primary");
 	}
-
-	/*AWeapon** Container = Weapons.Find("Primary");
-	if (Container)
-	{
-		AWeapon* Weapon = *Container;
-		if (CurrentWeapon)
-		{
-			CurrentWeapon->SetActorHiddenInGame(true);
-			CurrentWeapon->SetCanFire(false);
-		}
-		if (Spike)
-		{
-			Spike->SetActorHiddenInGame(true);
-		}
-		if (Knife)
-		{
-			Knife->SetActorHiddenInGame(true);
-		}
-		SetCurrentWeapon(Weapon);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Pimary None"));
-	}*/
 }
 
 void AValorantCharacter::QuickSlotTwo(const FInputActionValue& Value)
@@ -325,44 +301,6 @@ void AValorantCharacter::DropCurrentWeapon(const FInputActionValue& Value)
 	if (WeaponManager)
 	{
 		WeaponManager->RemoveWeapon(CurrentWeapon);
-
-		//auto Tag = CurrentWeapon->WeaponTag.ToString();
-		//RemoveFromWeapon(Tag);
-		//DetachWeapon(Tag);
-		//DropWeapon(CurrentWeapon);
-		
-		//if (Tag == "Primary")
-		//{
-		//	//주무기 -> 보조무기
-		//	//보조무기 있는지 check
-		//	if (AWeapon** ptr =  Weapons.Find("Secondary"))
-		//	{
-		//		auto temp = *(ptr);
-		//		SetCurrentWeapon(temp);
-		//		temp->SetActorHiddenInGame(false);
-		//		temp->SetCanFire(true);
-		//	}
-		//	else 
-		//	{
-		//		CurrentWeapon = Knife;
-		//	}
-		//}
-		//else
-		//{
-		//	//보조무기 -> 주무기
-		//	//주무기있나 체크
-		//	if (auto ptr = Weapons.Find("Primary"))
-		//	{
-		//		auto temp = *(ptr);
-		//		SetCurrentWeapon(temp);
-		//		temp->SetActorHiddenInGame(false);
-		//		temp->SetCanFire(true);
-		//	}
-		//	else
-		//	{
-		//		CurrentWeapon = Knife;
-		//	}
-		//}
 	}
 }
 

@@ -29,6 +29,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	TSubclassOf<class AWeapon> KnifeClass;
 
+	TSubclassOf<class UBulletWidget> MainHUDWidgetClass;
+	class UBulletWidget* WidgetBullet;
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -43,4 +46,6 @@ public:
 
 	//현재 무기 변경
 	void SwapWeapon(FString Tag);
+
+	void SetBulletWidget(FString Tag);
 };

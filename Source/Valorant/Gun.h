@@ -66,4 +66,7 @@ public:
 
 	void Drop();
 
+	int GetCurrentBullet();
+	int GetRemainBullet();
+	int GetReloadBullet();
 };

@@ -58,7 +58,7 @@ public:
 	//발사 가능 여부 설정
 	void SetCanFire(bool Flag);
 
-	void SetBulletWidget();
+	//void SetBulletWidget();
 protected:
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -149,8 +149,8 @@ public:
 	void Reload();
 
 	//탄 Widget
-	TSubclassOf<class UBulletWidget> MainHUDWidgetClass;
-	class UBulletWidget* WidgetBullet;
+	//TSubclassOf<class UBulletWidget> MainHUDWidgetClass;
+	//class UBulletWidget* WidgetBullet;
 
 	UPROPERTY()
 	class UAnimInstance* AnimInstance;
