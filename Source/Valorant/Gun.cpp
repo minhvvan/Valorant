@@ -39,7 +39,6 @@ AGun::AGun()
 void AGun::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void AGun::PostInitializeComponents()

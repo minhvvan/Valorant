@@ -85,14 +85,14 @@ bool UWeaponManager::AddWeapon(AWeapon* Weapon)
 	}
 
 	//무기 종류에 따라 설정 -> Anim 관련 변수
-	if (Tag == "Primary")
-	{
-		Character->SetHasRifle(true);
-	}
-	else if(Tag == "Secondary")
-	{
-		Character->SetHasPistol(true);
-	}
+	//if (Tag == "Primary")
+	//{
+	//	Character->SetHasRifle(true);
+	//}
+	//else if(Tag == "Secondary")
+	//{
+	//	Character->SetHasPistol(true);
+	//}
 
 	return true;
 }
@@ -201,7 +201,6 @@ void UWeaponManager::ChangeWeapon(AWeapon* Weapon)
 	}
 }
 
-
 void UWeaponManager::SwapWeapon(FString Tag)
 {
 	auto weaponContainer = Weapons.Find(Tag);
@@ -216,6 +215,15 @@ void UWeaponManager::SwapWeapon(FString Tag)
 
 			Character->SetCurrentWeapon(weapon);
 			SetBulletWidget(Tag);
+
+			if (Tag == "Primary")
+			{
+				Character->SetHasRifle(true);
+			}
+			else if(Tag == "Secondary")
+			{
+				Character->SetHasPistol(true);
+			}
 		}
 		else
 		{
@@ -238,8 +246,6 @@ void UWeaponManager::SetBulletWidget(FString Tag)
 		{
 			WidgetBullet->SetVisibility(ESlateVisibility::Visible);
 
-			//CurrentBullet = ReloadBullet;
-			//WidgetBullet->AddToViewport();
 			WidgetBullet->SetCurrentBullet(CurrentBullet);
 			WidgetBullet->SetRemainBullet(RemainBullet);
 		}
