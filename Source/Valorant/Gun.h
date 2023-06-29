@@ -9,6 +9,7 @@
 /**
  * 
  */
+DECLARE_DELEGATE_OneParam(FOnCanged, FString);
 UCLASS()
 class VALORANT_API AGun : public AWeapon
 {
@@ -69,4 +70,6 @@ public:
 	int GetCurrentBullet();
 	int GetRemainBullet();
 	int GetReloadBullet();
+
+	FOnCanged DG_BulletChange;
 };

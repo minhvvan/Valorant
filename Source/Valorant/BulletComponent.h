@@ -6,7 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "BulletComponent.generated.h"
 
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VALORANT_API UBulletComponent : public UActorComponent
 {

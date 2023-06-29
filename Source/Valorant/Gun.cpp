@@ -97,14 +97,6 @@ void AGun::EndInteract()
 	InteractUI->SetVisibility(false);
 }
 
-//void AGun::DetachWeapon()
-//{
-//	if (WeaponComp)
-//	{
-//		WeaponComp->DetachWeapon();
-//	}
-//}
-
 void AGun::EnableInteraction()
 {
 	InteractComp->SetGenerateOverlapEvents(true);
@@ -129,9 +121,9 @@ void AGun::Drop()
 
 int AGun::GetCurrentBullet()
 {
-	if (WeaponComp)
+	if (BulletComp)
 	{
-		return WeaponComp->CurrentBullet;
+		return BulletComp->GetCurrentBullet();
 	}
 
 	return 0;
@@ -139,9 +131,9 @@ int AGun::GetCurrentBullet()
 
 int AGun::GetRemainBullet()
 {
-	if (WeaponComp)
+	if (BulletComp)
 	{
-		return WeaponComp->RemainBullet;
+		return BulletComp->GetRemainBullet();
 	}
 
 	return 0;
@@ -149,9 +141,9 @@ int AGun::GetRemainBullet()
 
 int AGun::GetReloadBullet()
 {
-	if (WeaponComp)
+	if (BulletComp)
 	{
-		return WeaponComp->ReloadBullet;
+		return BulletComp->GetReloadBullet();
 	}
 
 	return 0;
@@ -162,18 +154,19 @@ void AGun::Reload()
 	if (BulletComp->Reload())
 	{
 		SetCanFire(true);
+		DG_BulletChange.ExecuteIfBound(WeaponTag.ToString());
 	}
 	else 
 	{
 		SetCanFire(false);
 	}
-	//widget 설정해야함 -> manager에서 할거임
-
 }
 
 void AGun::DecreaseCurrentBullet()
 {
+
 	BulletComp->SetCurrentBullet(BulletComp->GetCurrentBullet() - 1);
+	DG_BulletChange.ExecuteIfBound(WeaponTag.ToString());
 
 	//남은 탄이 없으면 장전
 	if (BulletComp->GetCurrentBullet() == 0)

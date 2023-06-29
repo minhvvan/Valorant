@@ -133,17 +133,6 @@ public:
 	UFUNCTION()
 	void OnBulletRecoilProgress(FVector BulletRecoil);
 
-	//Bullet
-	int32 CurrentBullet;
-
-	//보유 탄 수 
-	UPROPERTY(EditAnywhere, Category = "Gun")
-	int32 RemainBullet;
-
-	//하나의 탄창에 들어가는 탄 수
-	UPROPERTY(EditAnywhere, Category = "Gun")
-	int32 ReloadBullet;
-
 	//장전
 	UFUNCTION()
 	void Reload();

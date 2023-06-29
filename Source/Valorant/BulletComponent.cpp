@@ -60,18 +60,12 @@ bool UBulletComponent::Reload()
 		{
 			SetCurrentBullet(RemainBullet);
 			SetRemainBullet(0);
-
-			//WidgetBullet->SetCurrentBullet(CurrentBullet);
-			//WidgetBullet->SetRemainBullet(RemainBullet);
 		}
 		else
 		{
 			//남은 탄이 필요한 탄보다 많을 때
 			SetRemainBullet(RemainBullet - Need);
-			SetCurrentBullet(RemainBullet);
-
-			//WidgetBullet->SetCurrentBullet(CurrentBullet);
-			//WidgetBullet->SetRemainBullet(RemainBullet);
+			SetCurrentBullet(ReloadBullet);
 		}
 	}
 

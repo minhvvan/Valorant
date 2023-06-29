@@ -78,6 +78,8 @@ bool UWeaponManager::AddWeapon(AWeapon* Weapon)
 	auto Gun = Cast<AGun>(Weapon);
 	if (Gun && Gun->WeaponComp)
 	{
+		Gun->DG_BulletChange.BindUObject(this, &UWeaponManager::SetBulletWidget);
+
 		Gun->WeaponComp->AttachWeapon(Character, Tag);
 		Gun->InteractComp->SetGenerateOverlapEvents(false);
 	}
@@ -234,7 +236,9 @@ void UWeaponManager::SetBulletWidget(FString Tag)
 		//Åº Widget ¼³Á¤
 		if (WidgetBullet)
 		{
-			CurrentBullet = ReloadBullet;
+			WidgetBullet->SetVisibility(ESlateVisibility::Visible);
+
+			//CurrentBullet = ReloadBullet;
 			//WidgetBullet->AddToViewport();
 			WidgetBullet->SetCurrentBullet(CurrentBullet);
 			WidgetBullet->SetRemainBullet(RemainBullet);
@@ -252,6 +256,14 @@ void UWeaponManager::SetBulletWidget(FString Tag)
 					WidgetBullet->SetRemainBullet(RemainBullet);
 				}
 			}
+		}
+	}
+	else
+	{
+		//Knife
+		if (WidgetBullet)
+		{
+			WidgetBullet->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 }
