@@ -29,12 +29,6 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 	{
 		ShotHoleMat = (UMaterial*)Material.Object;
 	}
-
-	//static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Widget/WBP_Bullet.WBP_Bullet_C'"));
-	//if (UW.Succeeded())
-	//{
-	//	MainHUDWidgetClass = UW.Class;
-	//}
 }
 
 //น฿ป็
@@ -140,7 +134,7 @@ void UTP_WeaponComponent::Fire()
 			ObjectTypes,
 			false,
 			IgnoreActors,
-			EDrawDebugTrace::None,
+			EDrawDebugTrace::ForDuration,
 			HitResult,
 			true
 		);

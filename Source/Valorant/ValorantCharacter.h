@@ -79,6 +79,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* SkillActiveAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* MarketAction;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
 	TMap<FString, class AWeapon*> Weapons;
 	
@@ -111,6 +114,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnInstall OnUnInstallComplete;
+
+	TSubclassOf<class UWidget_Market> MarketHUDWidgetClass;
+	class UWidget_Market* WidgetMarket;
+
+	bool bOpenMarket;
 
 protected:
 	virtual void BeginPlay();
@@ -193,6 +201,8 @@ public:
 	virtual void SkillQ();
 	virtual void SkillE();
 	virtual void SkillX();
+
+	void OpenMarket();
 
 	void ActiveSkill();
 

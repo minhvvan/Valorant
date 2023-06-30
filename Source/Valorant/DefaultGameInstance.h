@@ -30,6 +30,12 @@ struct FCharacterStat : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 XSkillPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Credit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Shield;
 };
 
 USTRUCT()

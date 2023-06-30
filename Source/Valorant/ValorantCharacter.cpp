@@ -25,6 +25,7 @@
 #include "Raze_BoomBot.h"
 #include "Raze_Showstopper.h"
 #include "WeaponManager.h"
+#include "Widget_Market.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -56,6 +57,13 @@ AValorantCharacter::AValorantCharacter()
 	Stat = CreateDefaultSubobject<UStatComponent>(TEXT("STAT"));
 	WeaponManager = CreateDefaultSubobject<UWeaponManager>(TEXT("WEAPONS"));
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Widget/WBP_Market.WBP_Market_C'"));
+	if (UW.Succeeded())
+	{
+		MarketHUDWidgetClass = UW.Class;
+	}
+
+	bOpenMarket = false;
 	bCanUnInstall = false;
 }
 
@@ -109,6 +117,9 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 		EnhancedInputComponent->BindAction(ESkillAction, ETriggerEvent::Triggered, this, &AValorantCharacter::SkillE);
 		EnhancedInputComponent->BindAction(XSkillAction, ETriggerEvent::Triggered, this, &AValorantCharacter::SkillX);
 		EnhancedInputComponent->BindAction(SkillActiveAction, ETriggerEvent::Triggered, this, &AValorantCharacter::ActiveSkill);
+		
+		//Market
+		EnhancedInputComponent->BindAction(MarketAction, ETriggerEvent::Triggered, this, &AValorantCharacter::OpenMarket);
 	}
 }
 
@@ -522,6 +533,44 @@ void AValorantCharacter::SkillX()
 				}
 			}
 		}
+	}
+}
+
+void AValorantCharacter::OpenMarket()
+{
+	if (bOpenMarket)
+	{
+		//WidgetMarket->SetVisibility(ESlateVisibility::Hidden);
+		WidgetMarket->RemoveFromParent();
+		Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameOnly());
+		Cast<APlayerController>(GetController())->bShowMouseCursor = false;
+
+		bOpenMarket = false;
+	}
+	else
+	{
+		//Åº Widget ¼³Á¤
+		if (WidgetMarket)
+		{
+			WidgetMarket->AddToViewport();
+			Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameAndUI());
+			Cast<APlayerController>(GetController())->bShowMouseCursor = true;
+		}
+		else {
+			if (MarketHUDWidgetClass)
+			{
+				WidgetMarket = Cast<UWidget_Market>(CreateWidget(GetWorld(), MarketHUDWidgetClass));
+				if (IsValid(WidgetMarket))
+				{
+					// À§Á¬À» ºäÆ÷Æ®¿¡ ¶ç¿ì´Â ÇÔ¼ö
+					WidgetMarket->AddToViewport();
+					Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameAndUI());
+					Cast<APlayerController>(GetController())->bShowMouseCursor = true;
+				}
+			}
+		}
+
+		bOpenMarket = true;
 	}
 }
 
