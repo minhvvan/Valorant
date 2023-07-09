@@ -52,3 +52,20 @@
 - Camera의 회전을 변경하는 식으로 Camera Recoil을 구현하였고 Bullet Recoil은 조준점에서 Offset을 더해 적용하였다.
 - Bullet Recoil은 Timeline에 의해 곱해질 값이 정해지며 Timeline은 발사 key를 오래 지속할 경우 증가하는 Curve를 이용하였다.
 - Tick 함수에서는 조준점을 원래 위치로 돌아가게끔 구현하여 반동을 회복하게 하였다.
+
+### Skills
+![cskill](https://github.com/minhvvan/Valorant/assets/59609086/7ed5d127-04de-4acc-81af-733c2fea5815)
+- 적을 찾아 이동하는 스킬이다. 벽에 닿으면 반사각으로 튕겨 나가게 구현하였다.
+- behavior tree를 이용하여 적을 감지하고 성공하면 적에게 다가가 폭발을 일으킨다.
+
+![qskill](https://github.com/minhvvan/Valorant/assets/59609086/1d2f2f7d-0665-4d94-b3e9-a303a9b427a3)
+- 범위내 적에게 피해를 주며 밀어내는 폭탄을 던지는 스킬이다.
+- 스킬을 사용한 플레이어는 피해를 받지 않고 튕겨나갈 수 있다.
+
+![eskill](https://github.com/minhvvan/Valorant/assets/59609086/67319a2e-8a6d-4142-9397-a4dbcd93c52e)
+- 범위내 적에게 피해를 주는 폭탄을 던지는 스킬이다. 폭탄이 터질 때 작은 폭탄 4개로 나눠져 한 번더 피해를 준다.
+- 큰 폭탄이 터질때 4개의 방향으로 폭탄이 spawn되게 구현하였다.
+
+![xskill](https://github.com/minhvvan/Valorant/assets/59609086/e1884e5b-5727-4f44-85c6-2a98c2802f55)
+- 범위내 적에게 피해를 주는 로켓을 쏘는 스킬이다.
+- 스킬을 사용한 플레이어는 뒤로 밀려난다.
