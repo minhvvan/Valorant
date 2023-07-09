@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "BulletComponent.h"
 #include "WeaponManager.h"
+#include "DefaultGameInstance.h"
 
 AGun::AGun()
 {
@@ -34,7 +35,10 @@ AGun::AGun()
 	WeaponTag = FName("Primary");
 
 	BulletComp = CreateDefaultSubobject<UBulletComponent>(TEXT("BULLET"));
+
+	MyGameInstance = Cast<UDefaultGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 }
+
 
 void AGun::BeginPlay()
 {
@@ -75,6 +79,7 @@ void AGun::PickUp(AValorantCharacter* Character)
 	if (Character->WeaponManager)
 	{
 		Character->WeaponManager->AddWeapon(this);
+		UE_LOG(LogTemp, Warning, TEXT("PickUp"));
 	}
 }
 
@@ -146,6 +151,18 @@ int AGun::GetReloadBullet()
 	}
 
 	return 0;
+}
+
+void AGun::SetMesh(FString Name)
+{
+	if (MyGameInstance)
+	{
+		auto newMesh = MyGameInstance->GetMesh(Name);
+		if (newMesh)
+		{
+			Mesh->SetSkeletalMesh(newMesh);
+		}
+	}
 }
 
 void AGun::Reload()

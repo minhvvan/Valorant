@@ -71,5 +71,9 @@ public:
 	int GetRemainBullet();
 	int GetReloadBullet();
 
+	void SetMesh(FString Name);
+
+	class UDefaultGameInstance* MyGameInstance;
+
 	FOnCanged DG_BulletChange;
 };

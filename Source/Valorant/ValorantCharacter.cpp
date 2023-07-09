@@ -553,6 +553,7 @@ void AValorantCharacter::OpenMarket()
 		if (WidgetMarket)
 		{
 			WidgetMarket->AddToViewport();
+			WidgetMarket->Character = this;
 			Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameAndUI());
 			Cast<APlayerController>(GetController())->bShowMouseCursor = true;
 		}
@@ -564,6 +565,7 @@ void AValorantCharacter::OpenMarket()
 				{
 					// À§Á¬À» ºäÆ÷Æ®¿¡ ¶ç¿ì´Â ÇÔ¼ö
 					WidgetMarket->AddToViewport();
+					WidgetMarket->Character = this;
 					Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameAndUI());
 					Cast<APlayerController>(GetController())->bShowMouseCursor = true;
 				}

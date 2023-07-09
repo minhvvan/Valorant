@@ -63,6 +63,8 @@ void UWeaponManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 bool UWeaponManager::AddWeapon(AWeapon* Weapon)
 {
 	auto Tag = Weapon->WeaponTag.ToString();
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *Tag);
+
 
 	//이미 같은 종류의 무기가 있으면 return
 	if(Weapons.Contains(Tag))
@@ -83,16 +85,6 @@ bool UWeaponManager::AddWeapon(AWeapon* Weapon)
 		Gun->WeaponComp->AttachWeapon(Character, Tag);
 		Gun->InteractComp->SetGenerateOverlapEvents(false);
 	}
-
-	//무기 종류에 따라 설정 -> Anim 관련 변수
-	//if (Tag == "Primary")
-	//{
-	//	Character->SetHasRifle(true);
-	//}
-	//else if(Tag == "Secondary")
-	//{
-	//	Character->SetHasPistol(true);
-	//}
 
 	return true;
 }

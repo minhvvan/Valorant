@@ -25,5 +25,4 @@ public:
 	virtual void DetachWeapon() {};
 	virtual void EnableInteraction() {};
 	virtual void SetCanFire(bool Flag) {};
-
 };

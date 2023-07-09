@@ -68,6 +68,7 @@ public:
 
 	FCharacterStat* GetStatData(FString name);
 	FBullet* GetBulletData(FString name);
+	USkeletalMesh* GetMesh(FString name);
 
 private:
 	UPROPERTY()
@@ -75,4 +76,6 @@ private:
 
 	UPROPERTY()
 	class UDataTable* BulletDT;
+
+	TMap<FString, USkeletalMesh*> WeaponMesh;
 };

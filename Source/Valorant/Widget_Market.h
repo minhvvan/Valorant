@@ -81,6 +81,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* ESkillBtn;
 
+	UBlueprint* WeaponClass;
+	class AValorantCharacter* Character;
+
 protected:
 	virtual void NativeOnInitialized();
 

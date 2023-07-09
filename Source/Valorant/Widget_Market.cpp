@@ -3,6 +3,12 @@
 
 #include "Widget_Market.h"
 #include "Components/Button.h"
+#include "ValorantCharacter.h"
+#include "Weapon.h"
+#include "WeaponManager.h"
+#include "Gun.h"
+#include "TP_PickUpComponent.h"
+
 
 void UWidget_Market::NativeOnInitialized()
 {
@@ -30,6 +36,14 @@ void UWidget_Market::NativeOnInitialized()
 	ESkillBtn->OnClicked.AddDynamic(this, &UWidget_Market::ClickESkillBtn);
 
 	Clicked = FLinearColor(0.f, 1.f, 1.f, .7f);
+
+
+	WeaponClass = Cast<UBlueprint>(StaticLoadObject(UBlueprint::StaticClass(), NULL, TEXT("/Script/Engine.Blueprint'/Game/FirstPerson/Blueprints/BP_Rifle.BP_Rifle'")));
+	//static ConstructorHelpers::FObjectFinder<AWeapon> UW();
+	//if (UW.Succeeded())
+	//{
+	//	WeaponClass = UW.Object;
+	//}
 }
 
 void UWidget_Market::ClickClassicBtn()
@@ -40,6 +54,20 @@ void UWidget_Market::ClickClassicBtn()
 
 void UWidget_Market::ClickShortyBtn()
 {
+	//Shorty 생성 -> 캐릭터 WeaponManager에 추가요청
+	FRotator rotator;
+	FVector spawnLocation = Character->GetActorLocation() + (10, 10, 10);
+	FTransform SpawnTransform(rotator, spawnLocation);
+	AWeapon* Shorty = GetWorld()->SpawnActorDeferred<AWeapon>(WeaponClass->GeneratedClass, SpawnTransform);
+	if (Shorty)
+	{
+		Cast<AGun>(Shorty)->PickUpComp->SetGenerateOverlapEvents(false);
+		Shorty->WeaponTag = TEXT("Secondary");
+		Cast<AGun>(Shorty)->SetMesh(FString(TEXT("Shorty")));
+
+		Shorty->FinishSpawning(SpawnTransform);
+		Character->WeaponManager->AddWeapon(Shorty);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("ClickShortyBtn"));
 }
 
@@ -80,6 +108,17 @@ void UWidget_Market::ClickJudgeBtn()
 
 void UWidget_Market::ClickBulldogBtn()
 {
+	FRotator rotator;
+	FVector spawnLocation = Character->GetActorLocation() + (10, 10, 10);
+	FActorSpawnParameters spawnParams;
+
+	AWeapon* BullDog = GetWorld()->SpawnActor<AWeapon>(WeaponClass->GeneratedClass, spawnLocation, rotator, spawnParams);
+	if (BullDog)
+	{
+		BullDog->WeaponTag = TEXT("Primary");
+		Cast<AGun>(BullDog)->SetMesh(FString(TEXT("BullDog")));
+		Character->WeaponManager->AddWeapon(BullDog);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("ClickBulldogBtn"));
 }
 
@@ -90,6 +129,17 @@ void UWidget_Market::ClickGuardianBtn()
 
 void UWidget_Market::ClickVandalBtn()
 {
+	FRotator rotator;
+	FVector spawnLocation = Character->GetActorLocation() + (10, 10, 10);
+	FActorSpawnParameters spawnParams;
+
+	AWeapon* Vandal = GetWorld()->SpawnActor<AWeapon>(WeaponClass->GeneratedClass, spawnLocation, rotator, spawnParams);
+	if (Vandal)
+	{
+		Vandal->WeaponTag = TEXT("Primary");
+		Cast<AGun>(Vandal)->SetMesh(FString(TEXT("Vandal")));
+		Character->WeaponManager->AddWeapon(Vandal);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("ClickVandalBtn"));
 }
 
@@ -105,6 +155,17 @@ void UWidget_Market::ClickMarshalBtn()
 
 void UWidget_Market::ClickOperatorBtn()
 {
+	FRotator rotator;
+	FVector spawnLocation = Character->GetActorLocation() + (10, 10, 10);
+	FActorSpawnParameters spawnParams;
+
+	AWeapon* Operator = GetWorld()->SpawnActor<AWeapon>(WeaponClass->GeneratedClass, spawnLocation, rotator, spawnParams);
+	if (Operator)
+	{
+		Operator->WeaponTag = TEXT("Primary");
+		Cast<AGun>(Operator)->SetMesh(FString(TEXT("Operator")));
+		Character->WeaponManager->AddWeapon(Operator);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("ClickOperatorBtn"));
 }
 
