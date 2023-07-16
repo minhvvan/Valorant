@@ -26,6 +26,8 @@ public:
 
 	bool Reload();
 
+	void SetName(FString name) { Name = name; };
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

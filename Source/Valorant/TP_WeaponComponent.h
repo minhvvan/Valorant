@@ -128,6 +128,10 @@ public:
 	//반동방향조정을 위한 변수 
 	int RemainNum = 0;
 	bool RightTurn = false;
+	FString WeaponName;
+
+	UPROPERTY(VisibleAnywhere, Category = "Gun")
+	TMap<FString, float> DamageTable;
 
 	//timeline Callback
 	UFUNCTION()
@@ -148,6 +152,9 @@ public:
 	UFUNCTION()
 	void ReloadAnimEnded(UAnimMontage* Montage, bool bInterrupted);
 
+	UFUNCTION()
+	void SetName(FString name) { WeaponName = name; };
+
 	//장전 Anim
-	const FString ReloadName = "FP_Reload";
+	const FString ReloadName = "Rifle_Reload_Montage";
 };

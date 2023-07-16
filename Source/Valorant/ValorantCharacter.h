@@ -94,6 +94,24 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	class UStatComponent* Stat;
 
+	UPROPERTY(EditAnywhere)
+	class USphereComponent* HitboxHead;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxBody;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxRArm;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxLArm;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxRLeg;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxLLeg;
+
 public:
 	UPROPERTY(VisibleAnywhere)
 	class UWeaponManager* WeaponManager;

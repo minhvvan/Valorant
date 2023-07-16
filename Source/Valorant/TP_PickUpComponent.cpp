@@ -6,6 +6,7 @@ UTP_PickUpComponent::UTP_PickUpComponent()
 {
 	// Setup the Sphere Collision
 	SphereRadius = 32.f;
+	CanPickUp = true;
 }
 
 void UTP_PickUpComponent::BeginPlay()
@@ -22,7 +23,9 @@ void UTP_PickUpComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedCo
 	AValorantCharacter* Character = Cast<AValorantCharacter>(OtherActor);
 	if(Character != nullptr)
 	{
-		// Notify that the actor is being picked up
-		OnPickUp.Broadcast(Character);
+		if (CanPickUp)
+		{
+			OnPickUp.Broadcast(Character);
+		}
 	}
 }

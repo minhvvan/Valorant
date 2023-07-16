@@ -8,6 +8,7 @@
 #include "WeaponManager.h"
 #include "Gun.h"
 #include "TP_PickUpComponent.h"
+#include "TP_InteractionComponent.h"
 
 
 void UWidget_Market::NativeOnInitialized()
@@ -61,7 +62,9 @@ void UWidget_Market::ClickShortyBtn()
 	AWeapon* Shorty = GetWorld()->SpawnActorDeferred<AWeapon>(WeaponClass->GeneratedClass, SpawnTransform);
 	if (Shorty)
 	{
+		Cast<AGun>(Shorty)->SetWeaponName(TEXT("Shorty"));
 		Cast<AGun>(Shorty)->PickUpComp->SetGenerateOverlapEvents(false);
+		Cast<AGun>(Shorty)->InteractComp->SetGenerateOverlapEvents(false);
 		Shorty->WeaponTag = TEXT("Secondary");
 		Cast<AGun>(Shorty)->SetMesh(FString(TEXT("Shorty")));
 
@@ -110,13 +113,17 @@ void UWidget_Market::ClickBulldogBtn()
 {
 	FRotator rotator;
 	FVector spawnLocation = Character->GetActorLocation() + (10, 10, 10);
-	FActorSpawnParameters spawnParams;
-
-	AWeapon* BullDog = GetWorld()->SpawnActor<AWeapon>(WeaponClass->GeneratedClass, spawnLocation, rotator, spawnParams);
+	FTransform SpawnTransform(rotator, spawnLocation);
+	AWeapon* BullDog = GetWorld()->SpawnActorDeferred<AWeapon>(WeaponClass->GeneratedClass, SpawnTransform);
 	if (BullDog)
 	{
+		Cast<AGun>(BullDog)->SetWeaponName(TEXT("BullDog"));
+		Cast<AGun>(BullDog)->PickUpComp->SetGenerateOverlapEvents(false);
+		Cast<AGun>(BullDog)->InteractComp->SetGenerateOverlapEvents(false);
 		BullDog->WeaponTag = TEXT("Primary");
 		Cast<AGun>(BullDog)->SetMesh(FString(TEXT("BullDog")));
+
+		BullDog->FinishSpawning(SpawnTransform);
 		Character->WeaponManager->AddWeapon(BullDog);
 	}
 	UE_LOG(LogTemp, Warning, TEXT("ClickBulldogBtn"));
@@ -131,13 +138,17 @@ void UWidget_Market::ClickVandalBtn()
 {
 	FRotator rotator;
 	FVector spawnLocation = Character->GetActorLocation() + (10, 10, 10);
-	FActorSpawnParameters spawnParams;
-
-	AWeapon* Vandal = GetWorld()->SpawnActor<AWeapon>(WeaponClass->GeneratedClass, spawnLocation, rotator, spawnParams);
+	FTransform SpawnTransform(rotator, spawnLocation);
+	AWeapon* Vandal = GetWorld()->SpawnActorDeferred<AWeapon>(WeaponClass->GeneratedClass, SpawnTransform);
 	if (Vandal)
 	{
+		Cast<AGun>(Vandal)->SetWeaponName(TEXT("Vandal"));
+		Cast<AGun>(Vandal)->PickUpComp->SetGenerateOverlapEvents(false);
+		Cast<AGun>(Vandal)->InteractComp->SetGenerateOverlapEvents(false);
 		Vandal->WeaponTag = TEXT("Primary");
 		Cast<AGun>(Vandal)->SetMesh(FString(TEXT("Vandal")));
+
+		Vandal->FinishSpawning(SpawnTransform);
 		Character->WeaponManager->AddWeapon(Vandal);
 	}
 	UE_LOG(LogTemp, Warning, TEXT("ClickVandalBtn"));
@@ -157,13 +168,17 @@ void UWidget_Market::ClickOperatorBtn()
 {
 	FRotator rotator;
 	FVector spawnLocation = Character->GetActorLocation() + (10, 10, 10);
-	FActorSpawnParameters spawnParams;
-
-	AWeapon* Operator = GetWorld()->SpawnActor<AWeapon>(WeaponClass->GeneratedClass, spawnLocation, rotator, spawnParams);
+	FTransform SpawnTransform(rotator, spawnLocation);
+	AWeapon* Operator = GetWorld()->SpawnActorDeferred<AWeapon>(WeaponClass->GeneratedClass, SpawnTransform);
 	if (Operator)
 	{
+		Cast<AGun>(Operator)->SetWeaponName(TEXT("Operator"));
+		Cast<AGun>(Operator)->PickUpComp->SetGenerateOverlapEvents(false);
+		Cast<AGun>(Operator)->InteractComp->SetGenerateOverlapEvents(false);
 		Operator->WeaponTag = TEXT("Primary");
 		Cast<AGun>(Operator)->SetMesh(FString(TEXT("Operator")));
+
+		Operator->FinishSpawning(SpawnTransform);
 		Character->WeaponManager->AddWeapon(Operator);
 	}
 	UE_LOG(LogTemp, Warning, TEXT("ClickOperatorBtn"));

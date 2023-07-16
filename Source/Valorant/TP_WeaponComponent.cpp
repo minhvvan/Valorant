@@ -18,6 +18,8 @@
 #include "BulletWidget.h"
 #include "Gun.h"
 #include "WeaponManager.h"
+#include "DefaultGameInstance.h"
+#include "DrawDebugHelpers.h"
 
 UTP_WeaponComponent::UTP_WeaponComponent()
 {
@@ -29,6 +31,8 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 	{
 		ShotHoleMat = (UMaterial*)Material.Object;
 	}
+
+	WeaponName = TEXT("None");
 }
 
 //발사
@@ -92,84 +96,89 @@ void UTP_WeaponComponent::Fire()
 				}
 			}
 		}
+
+		//~HIt Check & Bullet Recoil
+		{
+			//Hit 판정 세팅
+			FVector CameraLoc = PlayerCamera->GetComponentLocation();
+			//Add Muzzle Offset
+			CameraLoc += MuzzleOffset;
+
+			FVector CameraForward = PlayerCamera->GetForwardVector();
+			FVector StartLoc = CameraLoc;
+			FVector EndLoc = CameraLoc + ((CameraForward + BulletOffset) * Range);
+
+
+			TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
+			TEnumAsByte<EObjectTypeQuery> WorldStatic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic);
+			TEnumAsByte<EObjectTypeQuery> WorldDynamic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic);
+			TEnumAsByte<EObjectTypeQuery> Pawn = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn);
+			ObjectTypes.Add(WorldStatic);
+			ObjectTypes.Add(WorldDynamic);
+			ObjectTypes.Add(Pawn);
+
+			TArray<AActor*> IgnoreActors; // 무시할 액터들.
+			IgnoreActors.Add(GetOwner());
+			IgnoreActors.Add(Character);
+			auto Weapons = Character->GetWeapons();
+			for (auto& weapon : Weapons)
+			{
+				IgnoreActors.Add(weapon.Value);
+			}
+
+			FHitResult HitResult;
+
+			//히트 판정
+			bool Result = GetWorld()->LineTraceSingleByChannel(
+				HitResult,
+				StartLoc,
+				EndLoc,
+				ECC_GameTraceChannel4
+			);
+
+			//DrawDebugLine(GetWorld(), StartLoc, EndLoc, FColor::Emerald, true, -1, 0, 10);
+
+			if (Result == true)
+			{
+				FVector ImpactPoint = HitResult.ImpactPoint;
+				FVector impactNormal = HitResult.ImpactNormal;
+
+				FVector basis = FVector(0, 0, 1);
+				if (fabsf(impactNormal.Y) > 0.8) {
+					basis = FVector(1, 0, 1);
+				}
+				FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
+				FVector forward = FVector::CrossProduct(right, impactNormal);
+				FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
+				FRotator theRotation = bvm.Rotator();
+
+				//Decal
+				ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
+				if (decal)
+				{
+					decal->SetDecalMaterial(ShotHoleMat);
+					decal->SetLifeSpan(2.0f);
+					decal->GetDecal()->DecalSize = FVector(5.0f, 5.0f, 5.0f);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
+				}
+
+				//피격된 Actor Damage적용
+				auto victim = HitResult.GetActor();
+				auto comp = HitResult.GetComponent();
+
+				//comp->GetName()
+				//UE_LOG(LogTemp, Warning, TEXT("%s"), *(comp->GetName()));
+				float damage = DamageTable.FindRef(comp->GetName());
+				UGameplayStatics::ApplyDamage(victim, damage, Character->GetController(), Character, NULL);
+			}
+		}
+
+
 		//반동 적용
 		ApplyCameraRecoil();
-	}
-
-	//~HIt Check & Bullet Recoil
-	{
-		//Hit 판정 세팅
-		FVector CameraLoc = PlayerCamera->GetComponentLocation();
-		//Add Muzzle Offset
-		CameraLoc += MuzzleOffset;
-
-		FVector CameraForward = PlayerCamera->GetForwardVector();
-		FVector StartLoc = CameraLoc;
-		FVector EndLoc = CameraLoc + ((CameraForward + BulletOffset) * Range);
-
-		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
-		TEnumAsByte<EObjectTypeQuery> WorldStatic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic);
-		TEnumAsByte<EObjectTypeQuery> WorldDynamic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic);
-		TEnumAsByte<EObjectTypeQuery> Pawn = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn);
-		ObjectTypes.Add(WorldStatic);
-		ObjectTypes.Add(WorldDynamic);
-		ObjectTypes.Add(Pawn);
-
-		TArray<AActor*> IgnoreActors; // 무시할 액터들.
-		IgnoreActors.Add(GetOwner());
-		IgnoreActors.Add(Character);
-		auto Weapons = Character->GetWeapons();
-		for (auto& weapon : Weapons)
-		{
-			IgnoreActors.Add(weapon.Value);
-		}
-
-		FHitResult HitResult;
-
-		//히트 판정
-		bool Result = UKismetSystemLibrary::LineTraceSingleForObjects(
-			GetWorld(),
-			StartLoc,
-			EndLoc,
-			ObjectTypes,
-			false,
-			IgnoreActors,
-			EDrawDebugTrace::ForDuration,
-			HitResult,
-			true
-		);
-
-		if (Result == true)
-		{
-			FVector ImpactPoint = HitResult.ImpactPoint;
-			FVector impactNormal = HitResult.ImpactNormal;
-
-			FVector basis = FVector(0, 0, 1);
-			if (fabsf(impactNormal.Y) > 0.8) {
-				basis = FVector(1, 0, 1);
-			}
-			FVector right = FVector::CrossProduct(impactNormal, basis).GetUnsafeNormal();
-			FVector forward = FVector::CrossProduct(right, impactNormal);
-			FBasisVectorMatrix bvm(forward, right, impactNormal, FVector(0, 0, 0));
-			FRotator theRotation = bvm.Rotator();
-
-			//Decal
-			ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(ImpactPoint, theRotation);
-			if (decal)
-			{
-				decal->SetDecalMaterial(ShotHoleMat);
-				decal->SetLifeSpan(2.0f);
-				decal->GetDecal()->DecalSize = FVector(5.0f, 5.0f, 5.0f);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
-			}
-
-			//피격된 Actor Damage적용
-			auto victim = HitResult.GetActor();
-			UGameplayStatics::ApplyDamage(victim, 10, Character->GetController(), Character, NULL);
-		}
 	}
 
 	//소리 Play
@@ -212,16 +221,8 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		AnimInstance->OnMontageEnded.AddDynamic(this, &UTP_WeaponComponent::ReloadAnimEnded);
 	}
 
-	//SetBulletWidget();
-
 	PlayerCamera = Character->GetFirstPersonCameraComponent();
 
-	//Attach
-	//FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	//AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-
-	//auto Owner = Cast<AWeapon>(GetOwner());
-	//Character->WeaponManager->AddWeapon(Owner);
 
 	//if (Once)
 	{
@@ -240,19 +241,6 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 		Once = false;
 	}
 }
-
-//void UTP_WeaponComponent::DetachWeapon()
-//{
-//	//발사 불가 & 소유권 해제
-//	SetCanFire(false);
-//	Character = nullptr;
-//	Once = true;
-//
-//	//if (WidgetBullet)
-//	//{
-//	//	WidgetBullet->RemoveFromViewport();
-//	//}
-//}
 
 void UTP_WeaponComponent::SetCanFire(bool Flag)
 {
@@ -280,31 +268,6 @@ void UTP_WeaponComponent::SetCanFire(bool Flag)
 	CanFire = Flag;
 }
 
-//void UTP_WeaponComponent::SetBulletWidget()
-//{
-//	//탄 Widget 설정
-//	if (WidgetBullet)
-//	{
-//		CurrentBullet = ReloadBullet;
-//		WidgetBullet->AddToViewport();
-//		WidgetBullet->SetCurrentBullet(CurrentBullet);
-//		WidgetBullet->SetRemainBullet(RemainBullet);
-//	}
-//	else {
-//		if (MainHUDWidgetClass)
-//		{
-//			WidgetBullet = Cast<UBulletWidget>(CreateWidget(GetWorld(), MainHUDWidgetClass));
-//			if (IsValid(WidgetBullet))
-//			{
-//				// 위젯을 뷰포트에 띄우는 함수
-//				CurrentBullet = ReloadBullet;
-//				WidgetBullet->AddToViewport();
-//				WidgetBullet->SetCurrentBullet(CurrentBullet);
-//				WidgetBullet->SetRemainBullet(RemainBullet);
-//			}
-//		}
-//	}
-//}
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -336,6 +299,21 @@ void UTP_WeaponComponent::BeginPlay()
 		RecoilOffset.SetLooping(true);
 
 		RecoilOffset.Play();
+	}
+
+	auto MyGameInstance = Cast<UDefaultGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (MyGameInstance)
+	{
+		auto StatData = MyGameInstance->GetBulletData(WeaponName);
+		if (StatData)
+		{
+			DamageTable.Add(TEXT("Head"), StatData->HeadDamage);
+			DamageTable.Add(TEXT("Body"), StatData->BodyDamage);
+			DamageTable.Add(TEXT("LArm"), StatData->BodyDamage);
+			DamageTable.Add(TEXT("RArm"), StatData->BodyDamage);
+			DamageTable.Add(TEXT("RLeg"), StatData->LegDamage);
+			DamageTable.Add(TEXT("LLeg"), StatData->LegDamage);
+		}
 	}
 }
 

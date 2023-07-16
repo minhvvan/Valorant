@@ -63,8 +63,7 @@ void UWeaponManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 bool UWeaponManager::AddWeapon(AWeapon* Weapon)
 {
 	auto Tag = Weapon->WeaponTag.ToString();
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *Tag);
-
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), *Tag);
 
 	//이미 같은 종류의 무기가 있으면 return
 	if(Weapons.Contains(Tag))

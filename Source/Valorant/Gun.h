@@ -72,6 +72,7 @@ public:
 	int GetReloadBullet();
 
 	void SetMesh(FString Name);
+	void SetWeaponName(FString name);
 
 	class UDefaultGameInstance* MyGameInstance;
 

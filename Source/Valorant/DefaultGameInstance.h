@@ -39,7 +39,7 @@ struct FCharacterStat : public FTableRowBase
 };
 
 USTRUCT()
-struct FBullet : public FTableRowBase
+struct FWeaponData : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -52,6 +52,15 @@ struct FBullet : public FTableRowBase
 	//하나의 탄창에 들어가는 탄 수
 	UPROPERTY(EditAnywhere, Category = "Gun")
 	int32 ReloadBullet;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	int32 HeadDamage;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	int32 BodyDamage;
+
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	int32 LegDamage;
 };
 /**
  * 
@@ -67,7 +76,7 @@ public:
 	virtual void Init() override;
 
 	FCharacterStat* GetStatData(FString name);
-	FBullet* GetBulletData(FString name);
+	FWeaponData* GetBulletData(FString name);
 	USkeletalMesh* GetMesh(FString name);
 
 private:
@@ -75,7 +84,7 @@ private:
 	class UDataTable* MyStats;
 
 	UPROPERTY()
-	class UDataTable* BulletDT;
+	class UDataTable* WeaponData;
 
 	TMap<FString, USkeletalMesh*> WeaponMesh;
 };

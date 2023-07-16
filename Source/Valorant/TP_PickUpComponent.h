@@ -21,6 +21,12 @@ public:
 	FOnPickUp OnPickUp;
 
 	UTP_PickUpComponent();
+
+	UPROPERTY(VisibleAnywhere)
+	bool CanPickUp;
+
+	void SetCanPickUP(bool flag) { CanPickUp = flag; };
+	bool GetCanPickUP() { return CanPickUp; };
 protected:
 
 	/** Called when the game starts */

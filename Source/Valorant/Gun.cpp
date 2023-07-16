@@ -78,8 +78,13 @@ void AGun::PickUp(AValorantCharacter* Character)
 {
 	if (Character->WeaponManager)
 	{
-		Character->WeaponManager->AddWeapon(this);
-		UE_LOG(LogTemp, Warning, TEXT("PickUp"));
+		if (PickUpComp->GetCanPickUP())
+		{
+			if (Character->WeaponManager->AddWeapon(this))
+			{
+				PickUpComp->SetCanPickUP(false);
+			}
+		}
 	}
 }
 
@@ -161,7 +166,21 @@ void AGun::SetMesh(FString Name)
 		if (newMesh)
 		{
 			Mesh->SetSkeletalMesh(newMesh);
+			Mesh->SetCollisionProfileName("NoCollision");
 		}
+	}
+}
+
+void AGun::SetWeaponName(FString name)
+{
+	if (BulletComp)
+	{
+		BulletComp->SetName(name);
+	}
+
+	if (WeaponComp)
+	{
+		WeaponComp->SetName(name);
 	}
 }
 

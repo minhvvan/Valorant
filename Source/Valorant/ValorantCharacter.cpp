@@ -26,6 +26,8 @@
 #include "Raze_Showstopper.h"
 #include "WeaponManager.h"
 #include "Widget_Market.h"
+#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -65,6 +67,51 @@ AValorantCharacter::AValorantCharacter()
 
 	bOpenMarket = false;
 	bCanUnInstall = false;
+
+	HitboxHead = CreateDefaultSubobject<USphereComponent>(TEXT("Head"));
+	HitboxBody = CreateDefaultSubobject<UBoxComponent>(TEXT("Body"));
+	HitboxRArm = CreateDefaultSubobject<UBoxComponent>(TEXT("RArm"));
+	HitboxLArm = CreateDefaultSubobject<UBoxComponent>(TEXT("LArm"));
+	HitboxRLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("RLeg"));
+	HitboxLLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("LLeg"));
+
+	HitboxHead->SetupAttachment(RootComponent);
+	HitboxBody->SetupAttachment(RootComponent);
+	HitboxRArm->SetupAttachment(RootComponent);
+	HitboxLArm->SetupAttachment(RootComponent);
+	HitboxRLeg->SetupAttachment(RootComponent);
+	HitboxLLeg->SetupAttachment(RootComponent);
+
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	if (HitboxHead)
+	{
+		HitboxHead->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("HeadHitbox")));
+	}
+
+	if (HitboxBody)
+	{
+		HitboxBody->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("BodyHitbox")));
+	}
+
+	if (HitboxRArm)
+	{
+		HitboxRArm->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("RightArmHitbox")));
+	}
+
+	if (HitboxLArm)
+	{
+		HitboxLArm->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("LeftArmHitbox")));
+	}
+
+	if (HitboxRLeg)
+	{
+		HitboxRLeg->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("RightLegHitbox")));
+	}
+
+	if (HitboxLLeg)
+	{
+		HitboxLLeg->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("LeftLegHitbox")));
+	}
 }
 
 void AValorantCharacter::BeginPlay()
