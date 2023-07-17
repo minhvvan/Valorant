@@ -45,6 +45,11 @@
 - LineTrace에 Hit된 Actor가 만약 타격가능한 Actor였다면 Damage를 부여하였다.
 - Damage를 받아 체력이 0이 된 Player는 사망하게 구현했다.(Death Animation 적용 필요)
 
+![hitbox](https://github.com/minhvvan/Valorant/assets/59609086/386ff029-932d-4019-bcaf-fb3430f0fd56)
+- Hit되는 부위마다 Damage를 다르게 적용하였다.
+- Damage는 무기마다 다르며 무기가 생성될 때 DataTable에 있는 data를 불러와 저장하여 사용한다.
+- Hitbox Component를 Character에 부착하여 Collision을 설정하여 trace하였다.
+
 ### Recoil
 ![recoil](https://github.com/minhvvan/Valorant/assets/59609086/047c011c-03ea-4c6d-80cc-8dbb0c9606bd)
 - 2~5 탄정도는 위쪽으로 반동이 적용되고 최대 높이에 도달하면 좌우로 랜덤하게 반동이 적용되게 구현하였다.
@@ -69,3 +74,8 @@
 ![xskill](https://github.com/minhvvan/Valorant/assets/59609086/e1884e5b-5727-4f44-85c6-2a98c2802f55)
 - 범위내 적에게 피해를 주는 로켓을 쏘는 스킬이다.
 - 스킬을 사용한 플레이어는 뒤로 밀려난다.
+
+### Market
+![market](https://github.com/minhvvan/Valorant/assets/59609086/f9c6e81b-c4f2-48dd-9e4a-8ac8cb2792e6)
+- Widget UI를 제작하고 리소스가 있는 무기에만 기능을 구현하였다.
+- 버튼을 누르면 해당 무기가 구매되어 캐릭터에 부착된다. 
