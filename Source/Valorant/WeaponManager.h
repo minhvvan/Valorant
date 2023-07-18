@@ -43,6 +43,7 @@ public:
 	//변경
 	void ChangeWeapon(AWeapon* Weapon);
 
+	TMap<FString, class AWeapon*> GetWeapons() { return Weapons; };
 
 	//현재 무기 변경
 	void SwapWeapon(FString Tag);

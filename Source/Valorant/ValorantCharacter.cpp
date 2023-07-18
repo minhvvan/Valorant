@@ -170,60 +170,6 @@ void AValorantCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	}
 }
 
-//void AValorantCharacter::DetachWeapon(FString Tag)
-//{
-//	TArray<AActor*> AttachedActors;
-//	GetAttachedActors(AttachedActors);
-//	for (auto* Attached : AttachedActors)
-//	{
-//		auto Weapon = Cast<AWeapon>(Attached);
-//		if (Weapon->ActorHasTag(FName(*Tag)))
-//		{
-//			if (Tag == "Primary")
-//			{
-//				SetHasRifle(false);
-//			}
-//			else 
-//			{
-//				SetHasPistol(false);
-//			}
-//
-//			Weapon->DetachWeapon();
-//		}
-//	}
-//}
-
-//void AValorantCharacter::DropWeapon(AWeapon* Weapon)
-//{
-//	FHitResult HisResult;
-//	FVector Start = GetActorLocation();
-//	FVector End = GetActorLocation() - FVector(0.f, 0.f, 500.f);
-//	FVector DropPos;
-//	if (GetWorld()->LineTraceSingleByChannel(HisResult, Start, End, ECollisionChannel::ECC_Visibility))
-//	{
-//		DropPos = HisResult.Location + FVector(0.f, 0.f, 80.f) + GetActorForwardVector() * 50;
-//	}
-//
-//	if (Weapon)
-//	{
-//		Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-//		Weapon->SetActorLocation(DropPos);
-//		Weapon->SetActorRotation(FQuat::Identity);
-//		Weapon->EnableInteraction();
-//		Weapon->SetActorHiddenInGame(false);
-//	}
-//}
-//
-//void AValorantCharacter::AddToWeapon(FString Tag, AWeapon* Weapon)
-//{
-//	Weapons.Add(Tag, Weapon);
-//}
-//
-//void AValorantCharacter::RemoveFromWeapon(FString Tag)
-//{
-//	Weapons.FindAndRemoveChecked(Tag);
-//}
-
 void AValorantCharacter::SetCurrentWeapon(AWeapon* Weapon)
 {
 	CurrentWeapon = Weapon;
@@ -336,7 +282,7 @@ void AValorantCharacter::QuickSlotFour(const FInputActionValue& Value)
 			UE_LOG(LogTemp, Warning, TEXT("Install Start"));
 			OnInstall.Broadcast();
 		}
-		UE_LOG(LogTemp, Warning, TEXT("Swap"));
+		//UE_LOG(LogTemp, Warning, TEXT("Swap"));
 
 		Spike->SetActorHiddenInGame(false);
 		if (CurrentWeapon)

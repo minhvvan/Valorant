@@ -26,26 +26,48 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
 	USkeletalMeshComponent* Mesh1P;
 
-	UPROPERTY(VisibleAnywhere)
-	class AKnife* Knife;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
+	class AWeapon* CurrentWeapon;
 
+	UPROPERTY(VisibleAnywhere)
+	class UStatComponent* Stat;
+
+	UPROPERTY(EditAnywhere)
+	class USphereComponent* HitboxHead;
+	
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxBody;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxRArm;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxLArm;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxRLeg;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* HitboxLLeg;
+
+private:
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
 	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* SkillMappingContext;
 
 	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* JumpAction;
 
 	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
 
 	/** Move Input Action */
@@ -82,35 +104,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* MarketAction;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
-	TMap<FString, class AWeapon*> Weapons;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon, meta=(AllowPrivateAccess = "true"))
-	class AWeapon* CurrentWeapon;
+	UPROPERTY(VisibleAnywhere)
+	class AKnife* Knife;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
 	class ASpike* Spike;
-
-	UPROPERTY(VisibleAnywhere)
-	class UStatComponent* Stat;
-
-	UPROPERTY(EditAnywhere)
-	class USphereComponent* HitboxHead;
-	
-	UPROPERTY(EditAnywhere)
-	class UBoxComponent* HitboxBody;
-
-	UPROPERTY(EditAnywhere)
-	class UBoxComponent* HitboxRArm;
-
-	UPROPERTY(EditAnywhere)
-	class UBoxComponent* HitboxLArm;
-
-	UPROPERTY(EditAnywhere)
-	class UBoxComponent* HitboxRLeg;
-
-	UPROPERTY(EditAnywhere)
-	class UBoxComponent* HitboxLLeg;
 
 public:
 	UPROPERTY(VisibleAnywhere)
@@ -177,8 +175,6 @@ public:
 	//UFUNCTION()
 	//void RemoveFromWeapon(FString Tag);
 
-	UFUNCTION()
-	TMap<FString, class AWeapon*> GetWeapons() { return Weapons; };
 
 	UFUNCTION()
 	class AWeapon* GetCurrentWeapon() { return CurrentWeapon; };

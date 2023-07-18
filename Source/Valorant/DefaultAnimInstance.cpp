@@ -17,7 +17,6 @@ void UDefaultAnimInstance::PlayReloadMontage()
 {
 	if (ReloadMontage)
 	{
-	UE_LOG(LogTemp, Warning, TEXT("PlayMontage"));
 		if (!Montage_IsPlaying(ReloadMontage))
 		{
 			//Montage_Play(ReloadMontage, 1.f);

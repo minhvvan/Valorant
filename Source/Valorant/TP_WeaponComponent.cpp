@@ -23,7 +23,7 @@
 
 UTP_WeaponComponent::UTP_WeaponComponent()
 {
-	MuzzleOffset = FVector(0.0f, 0.0f, 0.0f);
+	MuzzleOffset = FVector(30.0f, 0.0f, 0.0f);
 
 	static ConstructorHelpers::FObjectFinder<UMaterial> Material(TEXT("/Script/Engine.Material'/Game/Resources/IMG/ShotHole_Mat.ShotHole_Mat'"));
 
@@ -100,14 +100,14 @@ void UTP_WeaponComponent::Fire()
 		//~HIt Check & Bullet Recoil
 		{
 			//Hit 판정 세팅
-			FVector CameraLoc = PlayerCamera->GetComponentLocation();
-			//Add Muzzle Offset
-			CameraLoc += MuzzleOffset;
+			FVector CameraLocation;
+			FRotator CameraRotation;
+			Character->GetActorEyesViewPoint(CameraLocation, CameraRotation);
 
+			FVector MuzzleLocation = CameraLocation + FTransform(CameraRotation).TransformVector(MuzzleOffset);
 			FVector CameraForward = PlayerCamera->GetForwardVector();
-			FVector StartLoc = CameraLoc;
-			FVector EndLoc = CameraLoc + ((CameraForward + BulletOffset) * Range);
-
+			FVector StartLoc = MuzzleLocation;
+			FVector EndLoc = StartLoc + ((CameraForward + BulletOffset) * Range);
 
 			TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
 			TEnumAsByte<EObjectTypeQuery> WorldStatic = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic);
@@ -120,7 +120,7 @@ void UTP_WeaponComponent::Fire()
 			TArray<AActor*> IgnoreActors; // 무시할 액터들.
 			IgnoreActors.Add(GetOwner());
 			IgnoreActors.Add(Character);
-			auto Weapons = Character->GetWeapons();
+			auto Weapons = Character->WeaponManager->GetWeapons();
 			for (auto& weapon : Weapons)
 			{
 				IgnoreActors.Add(weapon.Value);
@@ -136,7 +136,7 @@ void UTP_WeaponComponent::Fire()
 				ECC_GameTraceChannel4
 			);
 
-			//DrawDebugLine(GetWorld(), StartLoc, EndLoc, FColor::Emerald, true, -1, 0, 10);
+			DrawDebugLine(GetWorld(), StartLoc, EndLoc, FColor::Emerald, true, 2.f, 0, .3f);
 
 			if (Result == true)
 			{
@@ -170,12 +170,11 @@ void UTP_WeaponComponent::Fire()
 				auto comp = HitResult.GetComponent();
 
 				//comp->GetName()
-				//UE_LOG(LogTemp, Warning, TEXT("%s"), *(comp->GetName()));
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *(comp->GetName()));
 				float damage = DamageTable.FindRef(comp->GetName());
 				UGameplayStatics::ApplyDamage(victim, damage, Character->GetController(), Character, NULL);
 			}
 		}
-
 
 		//반동 적용
 		ApplyCameraRecoil();
@@ -397,5 +396,10 @@ void UTP_WeaponComponent::ReloadAnimEnded(UAnimMontage* Montage, bool bInterrupt
 		{
 			Owner->Reload();
 		}
+	}
+
+	if (!bInterrupted && Name.Equals(TEXT("Rifle_Shoot")))
+	{
+		EndFire();
 	}
 }

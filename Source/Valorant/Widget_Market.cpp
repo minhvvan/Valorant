@@ -151,7 +151,6 @@ void UWidget_Market::ClickVandalBtn()
 		Vandal->FinishSpawning(SpawnTransform);
 		Character->WeaponManager->AddWeapon(Vandal);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("ClickVandalBtn"));
 }
 
 void UWidget_Market::ClickPhantomBtn()
