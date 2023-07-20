@@ -28,6 +28,8 @@
 #include "Widget_Market.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AValorantCharacter
@@ -43,18 +45,27 @@ AValorantCharacter::AValorantCharacter()
 		
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+	//FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
 	Mesh1P->SetOnlyOwnerSee(true);
-	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
+	//Mesh1P->SetupAttachment(FirstPersonCameraComponent);
+	Mesh1P->SetupAttachment(RootComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
-	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	Mesh1P->SetRelativeLocation(FVector(-40.f, 0.f, -90.f));
+	//Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+
+	FirstPersonCameraComponent->SetupAttachment(Mesh1P, FName(TEXT("Camera")));
+
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 
 	Stat = CreateDefaultSubobject<UStatComponent>(TEXT("STAT"));
 	WeaponManager = CreateDefaultSubobject<UWeaponManager>(TEXT("WEAPONS"));
@@ -87,27 +98,22 @@ AValorantCharacter::AValorantCharacter()
 	{
 		HitboxHead->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("HeadHitbox")));
 	}
-
 	if (HitboxBody)
 	{
 		HitboxBody->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("BodyHitbox")));
 	}
-
 	if (HitboxRArm)
 	{
 		HitboxRArm->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("RightArmHitbox")));
 	}
-
 	if (HitboxLArm)
 	{
 		HitboxLArm->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("LeftArmHitbox")));
 	}
-
 	if (HitboxRLeg)
 	{
 		HitboxRLeg->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("RightLegHitbox")));
 	}
-
 	if (HitboxLLeg)
 	{
 		HitboxLLeg->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("LeftLegHitbox")));

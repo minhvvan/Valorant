@@ -170,7 +170,7 @@ void UTP_WeaponComponent::Fire()
 				auto comp = HitResult.GetComponent();
 
 				//comp->GetName()
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *(comp->GetName()));
+				//UE_LOG(LogTemp, Warning, TEXT("%s"), *(comp->GetName()));
 				float damage = DamageTable.FindRef(comp->GetName());
 				UGameplayStatics::ApplyDamage(victim, damage, Character->GetController(), Character, NULL);
 			}
@@ -321,8 +321,11 @@ void UTP_WeaponComponent::ApplyCameraRecoil()
 	//Camera 반동 적용
 	if (PlayerCamera)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Apply"));
 		FRotator NewCameraRotation = OriginalCameraRotation + TargetCameraRotation;
 		PlayerCamera->SetRelativeRotation(NewCameraRotation);
+
+		//Character->GetController()->ClientSetRotation(NewCameraRotation);
 	}
 }
 

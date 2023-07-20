@@ -27,8 +27,14 @@ void UBTService_Aiming::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 
 	auto Dir = Target->GetActorLocation() - CurrentPawn->GetActorLocation();
 
-	auto offset = FMath::Rand() % 30;
+	auto offset = FMath::Rand() % 50;
+	offset += 50;
 	Dir.Z -= offset;
+
+	auto Aim = CurrentPawn->GetActorLocation() + Dir;
+
+	//UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *FString(Target->GetActorLocation().ToString()));
+	//UE_LOG(LogTemp, Warning, TEXT("Aim: %s"), *FString(Aim.ToString()));
 
 	FRotator Rot = FRotationMatrix::MakeFromX(Dir).Rotator();
 
