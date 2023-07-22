@@ -51,16 +51,20 @@ void UTP_WeaponComponent::Fire()
 		if (!bFiring)
 		{
 			//조준점이 회복될 위치 저장
-			OriginalCameraRotation = PlayerCamera->GetRelativeRotation();
-			bFiring = true;
+			//OriginalCameraRotation = PlayerCamera->GetRelativeRotation();
+			if (Character)
+			{
+				//OriginalCameraRotation = Character->GetControlRotation();
+				bFiring = true;
+			}
 		}
 
 		//무작위 반동 생성
 		auto randomRecoil = FMath::RandRange(0.5, 0.8);
 		//~위쪽 반동
-		if (TargetCameraRotation.Pitch < MaxCameraRecoil)
+		if (RecoilRotation.Pitch < MaxCameraRecoil)
 		{
-			TargetCameraRotation.Pitch += (RecoilStrength * randomRecoil);
+			RecoilRotation.Pitch += (RecoilStrength * randomRecoil);
 		}
 		else
 		{
@@ -80,19 +84,19 @@ void UTP_WeaponComponent::Fire()
 			//우측 반동
 			if (RightTurn)
 			{
-				TargetCameraRotation.Yaw += (RecoilStrength * randomRecoil);
-				if (TargetCameraRotation.Yaw > MaxRightYaw)
+				RecoilRotation.Yaw += (RecoilStrength * randomRecoil);
+				if (RecoilRotation.Yaw > MaxRightYaw)
 				{
-					TargetCameraRotation.Yaw = MaxRightYaw;
+					RecoilRotation.Yaw = MaxRightYaw;
 				}
 			}
 			//좌측 반동
 			else
 			{
-				TargetCameraRotation.Yaw -= (RecoilStrength * randomRecoil);
-				if (TargetCameraRotation.Yaw < MaxLeftYaw)
+				RecoilRotation.Yaw -= (RecoilStrength * randomRecoil);
+				if (RecoilRotation.Yaw < MaxLeftYaw)
 				{
-					TargetCameraRotation.Yaw = MaxLeftYaw;
+					RecoilRotation.Yaw = MaxLeftYaw;
 				}
 			}
 		}
@@ -102,7 +106,9 @@ void UTP_WeaponComponent::Fire()
 			//Hit 판정 세팅
 			FVector CameraLocation;
 			FRotator CameraRotation;
-			Character->GetActorEyesViewPoint(CameraLocation, CameraRotation);
+
+			CameraLocation = PlayerCamera->GetComponentLocation();
+			CameraRotation = PlayerCamera->GetComponentRotation();
 
 			FVector MuzzleLocation = CameraLocation + FTransform(CameraRotation).TransformVector(MuzzleOffset);
 			FVector CameraForward = PlayerCamera->GetForwardVector();
@@ -267,7 +273,6 @@ void UTP_WeaponComponent::SetCanFire(bool Flag)
 	CanFire = Flag;
 }
 
-
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (Character == nullptr)
@@ -319,21 +324,22 @@ void UTP_WeaponComponent::BeginPlay()
 void UTP_WeaponComponent::ApplyCameraRecoil()
 {
 	//Camera 반동 적용
-	if (PlayerCamera)
+	if (Character)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Apply"));
-		FRotator NewCameraRotation = OriginalCameraRotation + TargetCameraRotation;
-		PlayerCamera->SetRelativeRotation(NewCameraRotation);
-
-		//Character->GetController()->ClientSetRotation(NewCameraRotation);
+		FRotator NewCameraRotation = OriginalCameraRotation + RecoilRotation;
+		GetWorld()->GetFirstPlayerController()->SetControlRotation(NewCameraRotation);
+		//UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(NewCameraRotation.ToString()));
 	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(rot.ToString()));
+	//GetWorld()->GetFirstPlayerController()->PlayerCameraManager->
 }
 
 //발사 종료
 void UTP_WeaponComponent::EndFire()
 {
 	//관련 변수 초기화
-	TargetCameraRotation = FRotator::ZeroRotator;
+	//RecoilRotation = FRotator::ZeroRotator;
 
 	bFiring = false;
 	RemainNum = 0;
@@ -353,16 +359,23 @@ void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	}
 
 	//Camera 복구 진행
-	if (PlayerCamera)
+	if (Character)
 	{
-		if (!PlayerCamera->GetRelativeRotation().IsNearlyZero(0.1))
+		if (auto Controller = Character->GetController())
 		{
-			FRotator SmoothedRotation = FMath::RInterpTo(PlayerCamera->GetRelativeRotation(), FRotator::ZeroRotator, GetWorld()->GetDeltaSeconds(), RecoilRecoveryTime);
-			PlayerCamera->SetRelativeRotation(SmoothedRotation);
-		}
-		else 
-		{
-			PlayerCamera->SetRelativeRotation(FRotator::ZeroRotator);
+			//RecoilRotation가 제외된 origin 설정
+			OriginalCameraRotation = Controller->GetControlRotation() - RecoilRotation;
+
+			if (!RecoilRotation.IsNearlyZero(0.1))
+			{
+				FRotator SmoothedRotation = FMath::RInterpTo(RecoilRotation, FRotator::ZeroRotator, GetWorld()->GetDeltaSeconds(), RecoilRecoveryTime);
+				RecoilRotation = SmoothedRotation;
+				Controller->SetControlRotation(OriginalCameraRotation + SmoothedRotation);
+			}
+			else
+			{
+				RecoilRotation = FRotator::ZeroRotator;
+			}
 		}
 	}
 }

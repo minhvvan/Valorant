@@ -45,7 +45,7 @@ void UBTService_CanShoot::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		auto Victim = HitResult.GetActor();
 		auto comp = HitResult.GetComponent();
 
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(Victim->GetName()));
+		//UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(Victim->GetName()));
 
 		if (AValorantCharacter* Player = Cast<AValorantCharacter>(Victim))
 		{

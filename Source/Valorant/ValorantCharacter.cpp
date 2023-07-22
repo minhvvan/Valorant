@@ -45,7 +45,7 @@ AValorantCharacter::AValorantCharacter()
 		
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 20.f, 0.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 	//FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 
@@ -60,8 +60,7 @@ AValorantCharacter::AValorantCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-40.f, 0.f, -90.f));
 	//Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
-	FirstPersonCameraComponent->SetupAttachment(Mesh1P, FName(TEXT("Camera")));
-
+	FirstPersonCameraComponent->SetupAttachment(Mesh1P, FName(TEXT("HeadHitbox")));
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;

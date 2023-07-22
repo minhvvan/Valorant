@@ -85,7 +85,7 @@ private:
 	FRotator OriginalCameraRotation;
 
 	//반동 Rotation
-	FRotator TargetCameraRotation;
+	FRotator RecoilRotation;
 
 	//최대 반동
 	float MaxCameraRecoil = 10.f;
