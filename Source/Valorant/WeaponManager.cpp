@@ -248,6 +248,7 @@ void UWeaponManager::SetBulletWidget(FString Tag)
 				{
 					// À§Á¬À» ºäÆ÷Æ®¿¡ ¶ç¿ì´Â ÇÔ¼ö
 					CurrentBullet = ReloadBullet;
+					//!TODO: player È­¸é¿¡¸¸ ¤·¤·
 					WidgetBullet->AddToViewport();
 					WidgetBullet->SetCurrentBullet(CurrentBullet);
 					WidgetBullet->SetRemainBullet(RemainBullet);

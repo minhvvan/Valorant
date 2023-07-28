@@ -10,6 +10,7 @@
 #include "Engine/DecalActor.h"
 #include "Components/DecalComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "StatusEffect.h"
 
 ARaze_Blast::ARaze_Blast()
 {
@@ -34,6 +35,12 @@ ARaze_Blast::ARaze_Blast()
 	Mesh->SetupAttachment(RootComponent);
 
 	InitialLifeSpan = 0;
+
+	auto Flash = new SEFlash(2.f, 500.f, this);
+	if (Flash)
+	{
+		SEList.Add(Flash);
+	}
 }
 
 void ARaze_Blast::Fire(FVector Direction)
@@ -80,6 +87,12 @@ void ARaze_Blast::Explosion()
 	if (Character)
 	{
 		Character->Blast = nullptr;
+	}
+
+	for (auto SE : SEList)
+	{
+		SE->Fire();
+		UE_LOG(LogTemp, Warning, TEXT("Fire"));
 	}
 
 	Destroy();

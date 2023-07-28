@@ -26,6 +26,8 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* Mesh;
 
+	TArray<class StatusEffect*> SEList;
+
 	virtual void Fire(FVector Direction) override;
 
 	virtual void Explosion();
