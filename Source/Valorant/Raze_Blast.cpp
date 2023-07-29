@@ -10,7 +10,7 @@
 #include "Engine/DecalActor.h"
 #include "Components/DecalComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "StatusEffect.h"
+#include "StatusEffects.h"
 
 ARaze_Blast::ARaze_Blast()
 {
@@ -36,9 +36,12 @@ ARaze_Blast::ARaze_Blast()
 
 	InitialLifeSpan = 0;
 
-	auto Flash = new SEFlash(2.f, 500.f, this);
+	auto Flash = NewObject<USEFlash>();
 	if (Flash)
 	{
+		Flash->SetTime(.5f);
+		Flash->SetRange(2000.f);
+		Flash->SetOwner(this);
 		SEList.Add(Flash);
 	}
 }
@@ -91,8 +94,7 @@ void ARaze_Blast::Explosion()
 
 	for (auto SE : SEList)
 	{
-		SE->Fire();
-		UE_LOG(LogTemp, Warning, TEXT("Fire"));
+		Cast<USEFlash>(SE)->Fire();
 	}
 
 	Destroy();

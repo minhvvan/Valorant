@@ -1,22 +1,31 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "StatusEffect.h"
+#include "StatusEffects.h"
 #include "Kismet/GameplayStatics.h"
 #include "ValorantCharacter.h"
+#include "Widget_Flash.h"
 
-StatusEffect::StatusEffect(float t, float r, AActor* owner) : time(t), range(r), Owner(owner) {}
+UStatusEffects::UStatusEffects()
+{
+}
 
 
 /*----------------------------------------
 SEFlash
 -----------------------------------------*/
 
-SEFlash::SEFlash(float t, float r, AActor* owner): StatusEffect(t, r, owner)
+
+USEFlash::USEFlash()
 {
+	static ConstructorHelpers::FClassFinder<UWidget_Flash> UW(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Widget/WBP_Flash.WBP_Flash_C'"));
+	if (UW.Succeeded())
+	{
+		FlashClass = UW.Class;
+	}
 }
 
-void SEFlash::Fire()
+void USEFlash::Fire()
 {
 	//Actor(Parent) 받아와서 범위 계산 
 	//걸린 character 시야각 계산 -> 강도 설정(시간)
@@ -45,7 +54,7 @@ void SEFlash::Fire()
 			for (auto result : OverlapResults)
 			{
 				AValorantCharacter* victim = Cast<AValorantCharacter>(result.GetActor());
-				
+
 				if (victim == nullptr)
 				{
 					continue;
@@ -61,11 +70,25 @@ void SEFlash::Fire()
 				auto Cam = victim->GetFirstPersonCameraComponent();
 				if (Cam)
 				{
+
+					if (FlashWidget == nullptr)
+					{
+						if (FlashClass)
+						{
+							FlashWidget = Cast<UWidget_Flash>(CreateWidget(Owner->GetWorld(), FlashClass));
+						}
+					}
+
+					FlashWidget->AddToPlayerScreen();
+
 					//4단계로 분류
 					if (theta <= FOV / 5.f)
 					{
 						// time * 1. 적용
-						UE_LOG(LogTemp, Warning, TEXT("baaaaaam"));
+						if (FlashWidget)
+						{
+							FlashWidget->PlayAnim(time);
+						}
 					}
 					else if (theta <= FOV / 3.f)
 					{
@@ -95,10 +118,10 @@ void SEFlash::Fire()
 SEConcussion
 -----------------------------------------*/
 
-SEConcussion::SEConcussion(float t, float r, AActor* owner): StatusEffect(t, r, owner)
+USEConcussion::USEConcussion()
 {
 }
 
-void SEConcussion::Fire()
+void USEConcussion::Fire()
 {
 }

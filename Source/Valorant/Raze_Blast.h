@@ -26,7 +26,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* Mesh;
 
-	TArray<class StatusEffect*> SEList;
+	TArray<class UStatusEffects*> SEList;
 
 	virtual void Fire(FVector Direction) override;
 
