@@ -25,7 +25,6 @@ void UWidget_Flash::PlayAnim(float time)
 
 void UWidget_Flash::AnimationFinished()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("finish"));
 	RemoveFromParent();
 }
 

@@ -39,7 +39,7 @@ ARaze_Blast::ARaze_Blast()
 	auto Flash = NewObject<USEFlash>();
 	if (Flash)
 	{
-		Flash->SetTime(.5f);
+		Flash->SetTime(2.5f);
 		Flash->SetRange(2000.f);
 		Flash->SetOwner(this);
 		SEList.Add(Flash);
@@ -92,11 +92,6 @@ void ARaze_Blast::Explosion()
 		Character->Blast = nullptr;
 	}
 
-	for (auto SE : SEList)
-	{
-		Cast<USEFlash>(SE)->Fire();
-	}
-
 	Destroy();
 }
 
@@ -135,6 +130,11 @@ void ARaze_Blast::CheckHit()
 				DrawDebugSphere(World, Center, Range, 16, FColor::Blue, false, 1.2f);
 				if (Character)
 				{
+					for (auto SE : SEList)
+					{
+						Cast<USEFlash>(SE)->Fire(Victim);
+					}
+
 					if (Victim != Character)
 					{
 						UGameplayStatics::ApplyDamage(Victim, Damage, Character->GetController(), Character, NULL);

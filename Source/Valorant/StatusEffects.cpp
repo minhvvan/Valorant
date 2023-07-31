@@ -25,86 +25,78 @@ USEFlash::USEFlash()
 	}
 }
 
-void USEFlash::Fire()
+void USEFlash::Fire(const AValorantCharacter* Victim)
 {
-	//Actor(Parent) 받아와서 범위 계산 
-	//걸린 character 시야각 계산 -> 강도 설정(시간)
-	//character camera에 flash 적용
+	UE_LOG(LogTemp, Warning, TEXT("fire"));
+
 	if (Owner)
 	{
 		//sphere trace
-		UWorld* World = Owner->GetWorld();
 		FVector Center = Owner->GetActorLocation();
 
-		if (World == nullptr) return;
+		auto Foward = Victim->GetActorForwardVector();
+		auto ToFlash = Center - Victim->GetActorLocation();
+		ToFlash.Normalize();
 
-		TArray<FOverlapResult> OverlapResults;
-		FCollisionQueryParams QueryParams(NAME_None, false, Owner);
+		auto dotResult = Foward.Dot(ToFlash);
+		float theta = FMath::RadiansToDegrees(FMath::Acos(dotResult));
 
-		bool bResult = World->OverlapMultiByChannel(
-			OverlapResults,
-			Center,
-			FQuat::Identity,
-			ECollisionChannel::ECC_EngineTraceChannel2,
-			FCollisionShape::MakeSphere(range),
-			QueryParams);
-
-		if (bResult)
+		auto Cam = Victim->GetFirstPersonCameraComponent();
+		if (Cam)
 		{
-			for (auto result : OverlapResults)
+			if (FlashWidget == nullptr)
 			{
-				AValorantCharacter* victim = Cast<AValorantCharacter>(result.GetActor());
-
-				if (victim == nullptr)
+				if (FlashClass)
 				{
-					continue;
+					FlashWidget = Cast<UWidget_Flash>(CreateWidget(Owner->GetWorld(), FlashClass));
 				}
+			}
 
-				auto Foward = victim->GetActorForwardVector();
-				auto ToFlash = Center - victim->GetActorLocation();
-				ToFlash.Normalize();
+			FVector2D Loc;
+			auto Controller = Victim->GetLocalViewingPlayerController();
+			Controller->ProjectWorldLocationToScreen(Owner->GetActorLocation(), Loc);
 
-				auto dotResult = Foward.Dot(ToFlash);
-				float theta = FMath::RadiansToDegrees(FMath::Acos(dotResult));
+			auto diffX = Loc.X - MidX;
+			auto diffY = Loc.Y - MidY;
 
-				auto Cam = victim->GetFirstPersonCameraComponent();
-				if (Cam)
+			FVector2D diff = { diffX, diffY };
+			FlashWidget->SetPositionInViewport(diff);
+
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *diff.ToString());
+
+			FlashWidget->AddToPlayerScreen();
+
+			//4단계로 분류
+			if (theta <= FOV / 5.f)
+			{
+				// time * 1. 적용
+				if (FlashWidget)
 				{
-
-					if (FlashWidget == nullptr)
-					{
-						if (FlashClass)
-						{
-							FlashWidget = Cast<UWidget_Flash>(CreateWidget(Owner->GetWorld(), FlashClass));
-						}
-					}
-
-					FlashWidget->AddToPlayerScreen();
-
-					//4단계로 분류
-					if (theta <= FOV / 5.f)
-					{
-						// time * 1. 적용
-						if (FlashWidget)
-						{
-							FlashWidget->PlayAnim(time);
-						}
-					}
-					else if (theta <= FOV / 3.f)
-					{
-						// time * .7 적용
-
-					}
-					else if (theta <= FOV / 2.f)
-					{
-						// time * .3 적용
-
-					}
-					else
-					{
-						// time * .15 적용
-
-					}
+					FlashWidget->PlayAnim(time);
+				}
+			}
+			else if (theta <= FOV / 3.f)
+			{
+				// time * .7 적용
+				if (FlashWidget)
+				{
+					FlashWidget->PlayAnim(time * .7f);
+				}
+			}
+			else if (theta <= FOV / 2.f)
+			{
+				// time * .3 적용
+				if (FlashWidget)
+				{
+					FlashWidget->PlayAnim(time * .3f);
+				}
+			}
+			else
+			{
+				// time * .15 적용
+				if (FlashWidget)
+				{
+					FlashWidget->PlayAnim(time * .15f);
 				}
 			}
 		}
@@ -122,6 +114,6 @@ USEConcussion::USEConcussion()
 {
 }
 
-void USEConcussion::Fire()
+void USEConcussion::Fire(const AValorantCharacter* Victim)
 {
 }

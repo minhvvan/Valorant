@@ -17,7 +17,7 @@ class VALORANT_API UStatusEffects : public UObject
 public:
 	UStatusEffects();
 
-	virtual void Fire() {};
+	virtual void Fire(const class AValorantCharacter* Victim) {};
 
 	void SetTime(float t) { time = t; };
 	void SetRange(float r) { range = r; };
@@ -37,10 +37,13 @@ class VALORANT_API USEFlash : public UStatusEffects
 public:
 	USEFlash();
 
-	void Fire() override;
+	void Fire(const class AValorantCharacter* Victim) override;
 
 private:
 	const float FOV = 90.f;
+
+	const float MidX = 1920.f / 2;
+	const float MidY = 1080.f / 2;
 
 	TSubclassOf<class UWidget_Flash> FlashClass;
 	class UWidget_Flash* FlashWidget;
@@ -54,5 +57,5 @@ class VALORANT_API USEConcussion : public UStatusEffects
 public:
 	USEConcussion();
 
-	virtual void Fire() override;
+	virtual void Fire(const class AValorantCharacter* Victim) override;
 };
