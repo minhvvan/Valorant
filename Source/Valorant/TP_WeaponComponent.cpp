@@ -51,10 +51,8 @@ void UTP_WeaponComponent::Fire()
 		if (!bFiring)
 		{
 			//조준점이 회복될 위치 저장
-			//OriginalCameraRotation = PlayerCamera->GetRelativeRotation();
 			if (Character)
 			{
-				//OriginalCameraRotation = Character->GetControlRotation();
 				bFiring = true;
 			}
 		}
@@ -212,7 +210,6 @@ void UTP_WeaponComponent::Fire()
 //Actor에게 무기 소유권 
 void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FString Tag)
 {
-
 	Character = TargetCharacter;
 	if (Character == nullptr)
 	{
@@ -228,10 +225,8 @@ void UTP_WeaponComponent::AttachWeapon(AValorantCharacter* TargetCharacter, FStr
 
 	PlayerCamera = Character->GetFirstPersonCameraComponent();
 
-
 	//if (Once)
 	{
-
 		if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 		{
 			if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
@@ -327,15 +322,11 @@ void UTP_WeaponComponent::ApplyCameraRecoil()
 	if (Character)
 	{
 		FRotator NewCameraRotation = OriginalCameraRotation + RecoilRotation;
-		GetWorld()->GetFirstPlayerController()->SetControlRotation(NewCameraRotation);
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(NewCameraRotation.ToString()));
-	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(rot.ToString()));
-	//GetWorld()->GetFirstPlayerController()->PlayerCameraManager->
+		Character->GetController()->SetControlRotation(NewCameraRotation);
+	}
 }
 
-//발사 종료
 void UTP_WeaponComponent::EndFire()
 {
 	//관련 변수 초기화

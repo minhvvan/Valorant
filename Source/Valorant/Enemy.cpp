@@ -91,7 +91,7 @@ void AEnemy::BeginPlay()
 		Vandal->FinishSpawning(SpawnTransform);
 		WeaponManager->AddWeapon(Vandal);
 
-		SetCurrentWeapon(Vandal);
+		AEnemy::SetCurrentWeapon(Vandal);
 		bHasRifle = true;
 	}
 }
