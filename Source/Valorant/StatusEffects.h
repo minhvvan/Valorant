@@ -58,4 +58,6 @@ public:
 	USEConcussion();
 
 	virtual void Fire(const class AValorantCharacter* Victim) override;
+private:
+	FTimerHandle TimerHandle;
 };

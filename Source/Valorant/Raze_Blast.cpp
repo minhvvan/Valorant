@@ -36,13 +36,22 @@ ARaze_Blast::ARaze_Blast()
 
 	InitialLifeSpan = 0;
 
-	auto Flash = NewObject<USEFlash>();
-	if (Flash)
+	//auto Flash = NewObject<USEFlash>();
+	//if (Flash)
+	//{
+	//	Flash->SetTime(2.5f);
+	//	Flash->SetRange(2000.f);
+	//	Flash->SetOwner(this);
+	//	SEList.Add(Flash);
+	//}
+
+	auto Concussion = NewObject<USEConcussion>();
+	if (Concussion)
 	{
-		Flash->SetTime(2.5f);
-		Flash->SetRange(2000.f);
-		Flash->SetOwner(this);
-		SEList.Add(Flash);
+		Concussion->SetTime(2.5f);
+		Concussion->SetRange(2000.f);
+		Concussion->SetOwner(this);
+		SEList.Add(Concussion);
 	}
 }
 
@@ -132,7 +141,7 @@ void ARaze_Blast::CheckHit()
 				{
 					for (auto SE : SEList)
 					{
-						Cast<USEFlash>(SE)->Fire(Victim);
+						SE->Fire(Victim);
 					}
 
 					if (Victim != Character)

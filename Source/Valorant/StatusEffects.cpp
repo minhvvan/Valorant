@@ -5,6 +5,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "ValorantCharacter.h"
 #include "Widget_Flash.h"
+#include "Engine/PostProcessVolume.h"
+#include "EngineUtils.h"
+#include "Camera/CameraComponent.h"
 
 UStatusEffects::UStatusEffects()
 {
@@ -116,4 +119,15 @@ USEConcussion::USEConcussion()
 
 void USEConcussion::Fire(const AValorantCharacter* Victim)
 {
+	auto Cam = Victim->GetFirstPersonCameraComponent();
+	if (Cam)
+	{
+		Cam->SetPostProcessBlendWeight(1.f);
+
+		Victim->GetWorldTimerManager().SetTimer(
+			TimerHandle, 
+			FTimerDelegate::CreateLambda([Cam]() {
+				Cam->SetPostProcessBlendWeight(0.f);
+			}), time, false, -1.f);
+	}
 }
